@@ -98,6 +98,19 @@ def register():
         last_name = request.form['last_name']
         phone = request.form.get('phone', '')
         
+        # Validate profile picture for candidates
+        if user_type == 'candidate':
+            profile_picture = request.files.get('profile_picture')
+            if not profile_picture or not profile_picture.filename:
+                flash('Profile picture is required for candidates.', 'error')
+                return render_template('auth/register.html')
+            
+            allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+            file_ext = profile_picture.filename.rsplit('.', 1)[1].lower() if '.' in profile_picture.filename else ''
+            if file_ext not in allowed_extensions:
+                flash('Invalid image format. Please upload PNG, JPG, JPEG, GIF, or WEBP.', 'error')
+                return render_template('auth/register.html')
+        
         password_hash = generate_password_hash(password)
         
         existing_user = User.query.filter_by(email=email).first()
@@ -118,7 +131,17 @@ def register():
             db.session.flush()
             
             if user_type == 'candidate':
-                candidate_profile = CandidateProfile(user_id=new_user.id)
+                # Save profile picture to database as binary
+                profile_picture = request.files['profile_picture']
+                picture_binary = profile_picture.read()
+                picture_mimetype = profile_picture.mimetype
+                
+                # Create candidate profile with profile picture in database
+                candidate_profile = CandidateProfile(
+                    user_id=new_user.id,
+                    profile_picture=picture_binary,
+                    profile_picture_mimetype=picture_mimetype
+                )
                 db.session.add(candidate_profile)
             elif user_type == 'employer':
                 company_name = request.form.get('company_name', '')

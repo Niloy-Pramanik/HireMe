@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, send_file
 from extensions import db
-from models import User, Notification
+from models import User, Notification, CandidateProfile
 from datetime import datetime, timedelta
 from sqlalchemy import func, or_
+import io
 
 bp = Blueprint('common', __name__)
 
@@ -69,3 +70,29 @@ def create_notification(user_id, title, message, notification_type='system', act
     )
     db.session.add(notification)
     db.session.commit()
+
+
+# --- PROFILE PICTURE ROUTE (Accessible to all roles) ---
+
+@bp.route('/profile_picture/<int:candidate_id>')
+def get_candidate_profile_picture(candidate_id):
+    """Serve candidate profile picture from database - accessible to employers and interviewers"""
+    profile = CandidateProfile.query.get_or_404(candidate_id)
+    
+    if not profile.profile_picture:
+        # Return default avatar SVG if no picture
+        default_svg = '''<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="100" fill="#E5E7EB"/>
+            <g fill="#9CA3AF">
+                <circle cx="100" cy="75" r="30"/>
+                <path d="M 100 105 Q 60 105 40 145 L 160 145 Q 140 105 100 105 Z"/>
+            </g>
+        </svg>'''
+        return default_svg, 200, {'Content-Type': 'image/svg+xml'}
+    
+    # Return the image from database
+    return send_file(
+        io.BytesIO(profile.profile_picture),
+        mimetype=profile.profile_picture_mimetype,
+        as_attachment=False
+    )

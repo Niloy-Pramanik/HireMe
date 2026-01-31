@@ -60,7 +60,6 @@ def admin_dashboard():
                          recent_activities=recent_activities,
                          daily_registrations=daily_registrations)
 
-
 # --- ADMIN USERS ---
 @bp.route('/users')
 def admin_users():
