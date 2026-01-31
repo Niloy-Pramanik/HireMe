@@ -25,3 +25,237 @@
             </a>
         </div>
     </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                </div>
+                <span class="text-green-500 text-sm font-medium">+{{ stats.new_users_today or 0 }} today</span>
+            </div>
+            <div class="text-3xl font-bold text-gray-900">{{ stats.total_users or 0 }}</div>
+            <div class="text-gray-500">Total Users</div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <span class="text-green-500 text-sm font-medium">{{ stats.active_jobs or 0 }} active</span>
+            </div>
+            <div class="text-3xl font-bold text-gray-900">{{ stats.total_jobs or 0 }}</div>
+            <div class="text-gray-500">Total Jobs</div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <span class="text-green-500 text-sm font-medium">+{{ stats.new_applications_today or 0 }}</span>
+            </div>
+            <div class="text-3xl font-bold text-gray-900">{{ stats.total_applications or 0 }}</div>
+            <div class="text-gray-500">Applications</div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                </div>
+                <span class="text-blue-500 text-sm font-medium">{{ stats.pending_verification or 0 }} pending</span>
+            </div>
+            <div class="text-3xl font-bold text-gray-900">{{ stats.total_companies or 0 }}</div>
+            <div class="text-gray-500">Companies</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- User Distribution Chart -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-900">User Statistics</h2>
+                    <select class="form-input py-1.5 text-sm">
+                        <option>Last 7 days</option>
+                        <option>Last 30 days</option>
+                        <option>Last 90 days</option>
+                    </select>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-3 gap-6 mb-6">
+                        <div class="text-center p-4 bg-blue-50 rounded-xl">
+                            <div class="text-2xl font-bold text-blue-600">{{ stats.candidates or 0 }}</div>
+                            <div class="text-sm text-gray-600">Candidates</div>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-xl">
+                            <div class="text-2xl font-bold text-purple-600">{{ stats.employers or 0 }}</div>
+                            <div class="text-sm text-gray-600">Employers</div>
+                        </div>
+                        <div class="text-center p-4 bg-green-50 rounded-xl">
+                            <div class="text-2xl font-bold text-green-600">{{ stats.interviewers or 0 }}</div>
+                            <div class="text-sm text-gray-600">Interviewers</div>
+                        </div>
+                    </div>
+                    <!-- Placeholder for chart -->
+                    <div class="h-64 bg-gray-50 rounded-xl flex items-center justify-center">
+                        <span class="text-gray-400">User growth chart</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-900">Recent Activity</h2>
+                    <a href="{{ url_for('admin.admin_activity_logs') }}" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+                        View All
+                    </a>
+                </div>
+                <div class="divide-y divide-gray-100">
+                    {% for activity in recent_activities[:5] %}
+                    <div class="px-6 py-4 flex items-start space-x-4">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
+                            {% if activity.action_type == 'user_registered' %}bg-green-100 text-green-600
+                            {% elif activity.action_type == 'job_posted' %}bg-blue-100 text-blue-600
+                            {% elif activity.action_type == 'application_submitted' %}bg-purple-100 text-purple-600
+                            {% else %}bg-gray-100 text-gray-600{% endif %}">
+                            {% if activity.action_type == 'user_registered' %}
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                            </svg>
+                            {% elif activity.action_type == 'job_posted' %}
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            {% else %}
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-gray-900">{{ activity.table_name }} - {{ activity.operation_type }}</p>
+                            <p class="text-sm text-gray-500">{{ activity.timestamp.strftime('%b %d, %Y at %I:%M %p') if activity.timestamp else '' }}</p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="px-6 py-8 text-center text-gray-500">
+                        No recent activity
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Quick Actions -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <h3 class="font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                <div class="space-y-3">
+                    <a href="{{ url_for('admin.admin_users') }}" class="flex items-center p-3 rounded-xl hover:bg-gray-50 transition border border-gray-200">
+                        <svg class="w-5 h-5 text-indigo-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <span class="font-medium text-gray-700">Manage Users</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_skills') }}" class="flex items-center p-3 rounded-xl hover:bg-gray-50 transition border border-gray-200">
+                        <svg class="w-5 h-5 text-purple-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                        </svg>
+                        <span class="font-medium text-gray-700">Manage Skills</span>
+                    </a>
+                    <a href="{{ url_for('admin.interviewer_applications') }}" class="flex items-center p-3 rounded-xl hover:bg-gray-50 transition border border-gray-200 {% if stats.pending_interviewer_apps > 0 %}border-yellow-300 bg-yellow-50{% endif %}">
+                        <svg class="w-5 h-5 text-orange-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span class="font-medium text-gray-700">Interviewer Applications</span>
+                        {% if stats.pending_interviewer_apps > 0 %}
+                        <span class="ml-auto px-2 py-0.5 bg-yellow-500 text-white text-xs font-bold rounded-full">{{ stats.pending_interviewer_apps }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('interview.manage_interviewers') }}" class="flex items-center p-3 rounded-xl hover:bg-gray-50 transition border border-gray-200">
+                        <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span class="font-medium text-gray-700">Manage Interviewers</span>
+                    </a>
+                    <a href="#" class="flex items-center p-3 rounded-xl hover:bg-gray-50 transition border border-gray-200">
+                        <svg class="w-5 h-5 text-yellow-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <span class="font-medium text-gray-700">Schedule Interview</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- System Health -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <h3 class="font-semibold text-gray-900 mb-4">System Health</h3>
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-sm text-gray-600">Database</span>
+                            <span class="text-sm font-medium text-green-600">Healthy</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-green-500 h-2 rounded-full" style="width: 85%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-sm text-gray-600">Storage</span>
+                            <span class="text-sm font-medium text-green-600">45% used</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-green-500 h-2 rounded-full" style="width: 45%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-sm text-gray-600">Email Queue</span>
+                            <span class="text-sm font-medium text-green-600">0 pending</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-green-500 h-2 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Approvals -->
+            {% if pending_approvals %}
+            <div class="bg-yellow-50 rounded-2xl border border-yellow-200 p-6">
+                <div class="flex items-center mb-4">
+                    <svg class="w-6 h-6 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <h3 class="font-semibold text-gray-900">Pending Approvals</h3>
+                </div>
+                <div class="space-y-3">
+                    {% for item in pending_approvals[:3] %}
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-700">{{ item.name }}</span>
+                        <a href="#" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">Review</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

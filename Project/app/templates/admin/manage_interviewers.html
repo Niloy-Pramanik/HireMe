@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Interviewers - Admin{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Manage Interviewers</h1>
+            <p class="mt-1 text-gray-600">{{ interviewers|length }} registered interviewers</p>
+        </div>
+        <button type="button" onclick="document.getElementById('addInterviewerModal').showModal()"
+            class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 transition shadow-lg">
+            <svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+            </svg>
+            Add Interviewer
+        </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+            <div class="text-2xl font-bold text-indigo-600">{{ interviewers|length }}</div>
+            <div class="text-sm text-gray-500">Total Interviewers</div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+            <div class="text-2xl font-bold text-green-600">{{ interviewers|selectattr('is_active', 'true')|list|length }}</div>
+            <div class="text-sm text-gray-500">Active</div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+            <div class="text-2xl font-bold text-purple-600">-</div>
+            <div class="text-sm text-gray-500">Interviews This Week</div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+            <div class="text-2xl font-bold text-yellow-600">-</div>
+            <div class="text-sm text-gray-500">Avg. Rating</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <form method="GET" action="{{ url_for('interview.manage_interviewers') }}" class="flex flex-wrap items-end gap-4">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Search</label>
+                <input type="text" name="q" value="{{ request.args.get('q', '') }}"
+                    class="form-input w-full" placeholder="Name or email...">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Specialization</label>
+                <select name="specialization" class="form-input">
+                    <option value="">All Specializations</option>
+                    {% for spec in specializations %}
+                    <option value="{{ spec }}" {% if request.args.get('specialization') == spec %}selected{% endif %}>{{ spec }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                <select name="status" class="form-input">
+                    <option value="">All Status</option>
+                    <option value="available" {% if request.args.get('status') == 'available' %}selected{% endif %}>Available</option>
+                    <option value="busy" {% if request.args.get('status') == 'busy' %}selected{% endif %}>Busy</option>
+                </select>
+            </div>
+            <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition">
+                Filter
+            </button>
+        </form>
+    </div>
+
+    <!-- Interviewers Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for interviewer in interviewers %}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition">
+            <div class="p-6">
+                <div class="flex items-start space-x-4">
+                    <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
+                        {{ interviewer.first_name[0] if interviewer.first_name else 'I' }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-bold text-gray-900">{{ interviewer.first_name }} {{ interviewer.last_name }}</h3>
+                        <p class="text-gray-600 text-sm truncate">{{ interviewer.email }}</p>
+                        <div class="flex items-center mt-2">
+                            {% for i in range(5) %}
+                            <svg class="w-4 h-4 text-gray-200" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            {% endfor %}
+                            <span class="text-sm text-gray-500 ml-1">(0)</span>
+                        </div>
+                    </div>
+                    <span class="px-2 py-1 rounded-full text-xs font-semibold
+                        {% if interviewer.is_active %}bg-green-100 text-green-700
+                        {% else %}bg-gray-100 text-gray-700{% endif %}">
+                        {{ 'Active' if interviewer.is_active else 'Inactive' }}
+                    </span>
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                    <div class="text-sm text-gray-500">
+                        Joined {{ interviewer.created_at.strftime('%b %d, %Y') if interviewer.created_at else 'N/A' }}
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <a href="#" class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="View">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                        </a>
+                        <a href="#" class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Edit">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-span-full bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
+            <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">No interviewers found</h3>
+            <p class="text-gray-600">Add interviewers to start scheduling interviews</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Add Interviewer Modal -->
+<dialog id="addInterviewerModal" class="rounded-2xl p-0 backdrop:bg-black/50 max-w-lg w-full">
+    <div class="w-full">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900">Add Interviewer</h3>
+            <button type="button" onclick="this.closest('dialog').close()" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <form method="POST" action="{{ url_for('admin.add_interviewer') }}" class="p-6 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">First Name</label>
+                    <input type="text" name="first_name" required class="form-input w-full">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Last Name</label>
+                    <input type="text" name="last_name" required class="form-input w-full">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                <input type="email" name="email" required class="form-input w-full">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Specializations</label>
+                <input type="text" name="specializations" class="form-input w-full" placeholder="e.g., Python, System Design, Frontend">
+                <p class="text-xs text-gray-500 mt-1">Comma-separated list</p>
+            </div>
+            <div class="flex items-center justify-end space-x-3 pt-4">
+                <button type="button" onclick="this.closest('dialog').close()" 
+                    class="px-4 py-2 text-gray-600 font-medium hover:text-gray-900 transition">
+                    Cancel
+                </button>
+                <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 transition">
+                    Add Interviewer
+                </button>
+            </div>
+        </form>
+    </div>
+</dialog>
+{% endblock %}

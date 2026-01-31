@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Interviewer Applications - Admin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Interviewer Applications</h1>
+            <p class="text-gray-600 mt-1">Review and manage expert interviewer applications</p>
+        </div>
+        
+        <!-- Status Tabs -->
+        <div class="bg-white rounded-xl shadow-sm mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="flex -mb-px">
+                    <a href="{{ url_for('admin.interviewer_applications') }}" 
+                       class="px-6 py-4 text-sm font-medium {% if not status_filter %}text-indigo-600 border-b-2 border-indigo-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+                        All
+                        <span class="ml-2 px-2 py-0.5 rounded-full text-xs bg-gray-100">{{ status_counts.pending + status_counts.under_review + status_counts.approved + status_counts.rejected }}</span>
+                    </a>
+                    <a href="{{ url_for('admin.interviewer_applications', status='pending') }}" 
+                       class="px-6 py-4 text-sm font-medium {% if status_filter == 'pending' %}text-indigo-600 border-b-2 border-indigo-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+                        Pending
+                        <span class="ml-2 px-2 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-800">{{ status_counts.pending }}</span>
+                    </a>
+                    <a href="{{ url_for('admin.interviewer_applications', status='under_review') }}" 
+                       class="px-6 py-4 text-sm font-medium {% if status_filter == 'under_review' %}text-indigo-600 border-b-2 border-indigo-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+                        Under Review
+                        <span class="ml-2 px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800">{{ status_counts.under_review }}</span>
+                    </a>
+                    <a href="{{ url_for('admin.interviewer_applications', status='approved') }}" 
+                       class="px-6 py-4 text-sm font-medium {% if status_filter == 'approved' %}text-indigo-600 border-b-2 border-indigo-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+                        Approved
+                        <span class="ml-2 px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800">{{ status_counts.approved }}</span>
+                    </a>
+                    <a href="{{ url_for('admin.interviewer_applications', status='rejected') }}" 
+                       class="px-6 py-4 text-sm font-medium {% if status_filter == 'rejected' %}text-indigo-600 border-b-2 border-indigo-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+                        Rejected
+                        <span class="ml-2 px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-800">{{ status_counts.rejected }}</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- Applications Table -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            {% if applications.items %}
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applicant</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Experience</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rate</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for app in applications.items %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+                                    {{ app.first_name[0] }}{{ app.last_name[0] }}
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ app.first_name }} {{ app.last_name }}</div>
+                                    <div class="text-sm text-gray-500">{{ app.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ app.experience_years }} years</div>
+                            <div class="text-sm text-gray-500">{{ app.headline[:30] }}...</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">${{ app.hourly_rate }}/hr</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ app.created_at.strftime('%b %d, %Y') }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if app.status == 'pending' %}
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                            {% elif app.status == 'under_review' %}
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">Under Review</span>
+                            {% elif app.status == 'approved' %}
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Approved</span>
+                            {% elif app.status == 'rejected' %}
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">Rejected</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="{{ url_for('admin.view_interviewer_application', app_id=app.id) }}" 
+                               class="text-indigo-600 hover:text-indigo-900">
+                                View Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <!-- Pagination -->
+            {% if applications.pages > 1 %}
+            <div class="px-6 py-4 border-t border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="text-sm text-gray-700">
+                        Showing {{ applications.page }} of {{ applications.pages }} pages
+                    </div>
+                    <div class="flex space-x-2">
+                        {% if applications.has_prev %}
+                        <a href="{{ url_for('admin.interviewer_applications', page=applications.prev_num, status=status_filter) }}" 
+                           class="px-3 py-1 border rounded text-sm hover:bg-gray-50">Previous</a>
+                        {% endif %}
+                        {% if applications.has_next %}
+                        <a href="{{ url_for('admin.interviewer_applications', page=applications.next_num, status=status_filter) }}" 
+                           class="px-3 py-1 border rounded text-sm hover:bg-gray-50">Next</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No applications found</h3>
+                <p class="mt-1 text-sm text-gray-500">
+                    {% if status_filter %}No {{ status_filter }} applications at the moment.{% else %}No applications have been submitted yet.{% endif %}
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

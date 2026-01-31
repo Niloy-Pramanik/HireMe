@@ -4,9 +4,10 @@ from datetime import datetime
 from extensions import db
 from models import (
     User, JobPosting, Company, CandidateProfile, JobApplication, 
-    JobRequiredSkill, Skill, ApplicationStatusHistory, InterviewRoom, CandidateSkill
+    JobRequiredSkill, Skill, ApplicationStatusHistory, InterviewRoom, CandidateSkill, MCQExam
 )
 from services import create_notification, log_activity, calculate_job_match_score
+from services.email_service import send_application_confirmation_email
 
 job_bp = Blueprint('job', __name__)
 
@@ -19,6 +20,7 @@ def browse_jobs():
     experience_level = request.args.get('experience', '') or request.args.get('experience_level', '')
     salary_min = request.args.get('min_salary', type=int) or request.args.get('salary_min', type=int)
     skill_id = request.args.get('skill', type=int)
+    work_mode = request.args.get('work_mode', '')
     sort = request.args.get('sort', 'newest')
     
     query = db.session.query(JobPosting, Company).join(Company).filter(
@@ -40,6 +42,15 @@ def browse_jobs():
     if job_types:
         # Filter by multiple job types
         query = query.filter(JobPosting.job_type.in_(job_types))
+    
+    # Filter by work mode (Remote, Onsite, Hybrid)
+    if work_mode:
+        query = query.filter(
+            or_(
+                JobPosting.location.ilike(f'%{work_mode}%'),
+                JobPosting.description.ilike(f'%{work_mode}%')
+            )
+        )
     
     if experience_level:
         exp_ranges = {
@@ -72,11 +83,18 @@ def browse_jobs():
         ).subquery()
         query = query.filter(JobPosting.id.in_(job_ids_with_skill))
     
-    # Sorting
+    # Sorting - Using CASE for MySQL compatibility (MySQL doesn't support NULLS LAST)
     if sort == 'salary_high':
-        query = query.order_by(JobPosting.salary_max.desc().nullslast(), JobPosting.created_at.desc())
+        query = query.order_by(
+            func.coalesce(JobPosting.salary_max, 0).desc(),
+            JobPosting.created_at.desc()
+        )
     elif sort == 'salary_low':
-        query = query.order_by(JobPosting.salary_min.asc().nullslast(), JobPosting.created_at.desc())
+        # For ascending, use a large number for NULLs to push them to the end
+        query = query.order_by(
+            func.coalesce(JobPosting.salary_min, 999999999).asc(),
+            JobPosting.created_at.desc()
+        )
     else:  # newest
         query = query.order_by(JobPosting.created_at.desc())
     
@@ -212,6 +230,14 @@ def apply_job(job_id):
             )
             
             db.session.commit()
+            
+            # Send confirmation email
+            try:
+                # Check if job has MCQ exam
+                has_exam = MCQExam.query.filter_by(job_id=job_id, is_active=True).first() is not None
+                send_application_confirmation_email(profile, job, company, has_exam=has_exam)
+            except Exception as e:
+                print(f"Error sending confirmation email: {str(e)}")
             
             flash('Application submitted successfully!', 'success')
             return redirect(url_for('candidate.candidate_applications'))

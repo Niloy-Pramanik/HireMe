@@ -11,11 +11,11 @@
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                     <div class="flex items-center">
                         <div class="w-24 h-24 rounded-full bg-white flex items-center justify-center text-indigo-600 font-bold text-3xl shadow-lg">
-                            {{ current_user.first_name[0] }}{{ current_user.last_name[0] }}
+                            {{ user.first_name[0] }}{{ user.last_name[0] }}
                         </div>
                         <div class="ml-6">
                             <div class="flex items-center">
-                                <h1 class="text-3xl font-bold text-white">{{ current_user.first_name }} {{ current_user.last_name }}</h1>
+                                <h1 class="text-3xl font-bold text-white">{{ user.first_name }} {{ user.last_name }}</h1>
                                 {% if profile.is_verified %}
                                 <span class="ml-3 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                                     <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -54,7 +54,7 @@
                     </div>
                 </div>
             </div>
-
+            
             <!-- Stats Bar -->
             <div class="grid grid-cols-4 divide-x divide-gray-200 bg-gray-50">
                 <div class="px-6 py-4 text-center">
@@ -80,7 +80,7 @@
                 </div>
                 <div class="px-6 py-4 text-center">
                     {% if profile.hourly_rate %}
-                    <div class="text-2xl font-bold text-indigo-600">₹{{ profile.hourly_rate }}</div>
+                    <div class="text-2xl font-bold text-indigo-600">${{ profile.hourly_rate }}</div>
                     {% else %}
                     <div class="text-2xl font-bold text-gray-400">—</div>
                     {% endif %}
@@ -101,7 +101,7 @@
                     <p class="text-gray-400 italic">No bio added yet. <a href="{{ url_for('interviewer.edit_profile') }}" class="text-indigo-600 hover:underline">Add one now</a></p>
                     {% endif %}
                 </div>
-
+                
                 <!-- Skills -->
                 <div class="bg-white rounded-2xl shadow-sm p-6">
                     <div class="flex items-center justify-between mb-4">
@@ -126,7 +126,7 @@
                     <p class="text-gray-400 italic">No skills added yet. <a href="{{ url_for('interviewer.edit_profile') }}" class="text-indigo-600 hover:underline">Add skills</a></p>
                     {% endif %}
                 </div>
-
+                
                 <!-- Certifications -->
                 <div class="bg-white rounded-2xl shadow-sm p-6">
                     <div class="flex items-center justify-between mb-4">
@@ -160,7 +160,7 @@
                     <p class="text-gray-400 italic">No certifications added yet. <a href="{{ url_for('interviewer.certifications') }}" class="text-indigo-600 hover:underline">Add certifications</a></p>
                     {% endif %}
                 </div>
-
+                
                 <!-- Recent Reviews -->
                 <div class="bg-white rounded-2xl shadow-sm p-6">
                     <div class="flex items-center justify-between mb-4">
@@ -192,8 +192,8 @@
                     {% endif %}
                 </div>
             </div>
-
-             <!-- Sidebar -->
+            
+            <!-- Sidebar -->
             <div class="space-y-6">
                 <!-- Quick Actions -->
                 <div class="bg-white rounded-2xl shadow-sm p-6">
@@ -229,7 +229,7 @@
                         </a>
                     </div>
                 </div>
-
+                
                 <!-- Profile Links -->
                 <div class="bg-white rounded-2xl shadow-sm p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Profile Links</h3>
@@ -292,10 +292,3 @@
     </div>
 </div>
 {% endblock %}
-
-
-
-
-
-
-

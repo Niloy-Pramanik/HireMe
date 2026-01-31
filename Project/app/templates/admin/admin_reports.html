@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports - Admin{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Reports & Analytics</h1>
+            <p class="mt-1 text-gray-600">Insights and statistics about platform performance</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <select class="form-input">
+                <option>Last 7 days</option>
+                <option selected>Last 30 days</option>
+                <option>Last 90 days</option>
+                <option>This Year</option>
+            </select>
+            <button type="button" class="px-4 py-2 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition">
+                <svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                Export
+            </button>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm text-gray-500">Total Jobs</span>
+                <span class="text-green-500 text-xs font-medium">Active</span>
+            </div>
+            <div class="text-3xl font-bold text-gray-900">{{ reports.job_statistics.total_jobs if reports and reports.job_statistics else 0 }}</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm text-gray-500">Total Users</span>
+                <span class="text-green-500 text-xs font-medium">Registered</span>
+            </div>
+            <div class="text-3xl font-bold text-gray-900">{{ reports.user_growth|length if reports and reports.user_growth else 0 }}</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm text-gray-500">Applications</span>
+                <span class="text-green-500 text-xs font-medium">Total</span>
+            </div>
+            <div class="text-3xl font-bold text-gray-900">{{ reports.application_trends|length if reports and reports.application_trends else 0 }}</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm text-gray-500">Skills Tracked</span>
+                <span class="text-blue-500 text-xs font-medium">In Demand</span>
+            </div>
+            <div class="text-3xl font-bold text-gray-900">{{ reports.skill_demand|length if reports and reports.skill_demand else 0 }}</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- User Growth Chart -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                <h2 class="text-lg font-semibold text-gray-900">User Growth</h2>
+            </div>
+            <div class="p-6">
+                <div class="h-64 bg-gray-50 rounded-xl flex items-center justify-center">
+                    <span class="text-gray-400">User growth chart placeholder</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Applications Chart -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                <h2 class="text-lg font-semibold text-gray-900">Applications Overview</h2>
+            </div>
+            <div class="p-6">
+                <div class="h-64 bg-gray-50 rounded-xl flex items-center justify-center">
+                    <span class="text-gray-400">Applications chart placeholder</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Reports -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Top Jobs by Company -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                <h3 class="font-semibold text-gray-900">Top Hiring Companies</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    {% if reports and reports.job_statistics and reports.job_statistics.by_company %}
+                    {% for company_name, count in reports.job_statistics.by_company[:5] %}
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="font-medium text-gray-900">{{ company_name or 'Unknown' }}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-indigo-600">{{ count }}</div>
+                            <div class="text-xs text-gray-400">job postings</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-gray-500 text-center">No data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Skills -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                <h3 class="font-semibold text-gray-900">In-Demand Skills</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    {% if reports and reports.skill_demand %}
+                    {% for skill_name, category, demand_count in reports.skill_demand[:5] %}
+                    <div class="flex items-center justify-between">
+                        <span class="font-medium text-gray-900">{{ skill_name }}</span>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-500">{{ demand_count }} jobs</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-gray-500 text-center">No data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Jobs by Location -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                <h3 class="font-semibold text-gray-900">Top Locations</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    {% if reports and reports.job_statistics and reports.job_statistics.by_location %}
+                    {% for location, count in reports.job_statistics.by_location[:5] %}
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center text-indigo-600 font-bold">
+                            {{ location[0] if location else '?' }}
+                        </div>
+                        <div class="flex-1">
+                            <div class="font-medium text-gray-900">{{ location or 'Not Specified' }}</div>
+                            <div class="text-sm text-gray-500">{{ count }} jobs</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-gray-500 text-center">No data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Status Distribution -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+            <h2 class="text-lg font-semibold text-gray-900">Application Status Distribution</h2>
+        </div>
+        <div class="p-6">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                {% if reports and reports.application_trends and reports.application_trends.status_distribution %}
+                {% for status, count in reports.application_trends.status_distribution %}
+                <div class="flex-1 text-center min-w-[120px]">
+                    <div class="text-3xl font-bold text-indigo-600">{{ count }}</div>
+                    <div class="text-sm text-gray-500 mt-1 capitalize">{{ status|replace('_', ' ') if status else 'Unknown' }}</div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-gray-500 text-center w-full">No application data available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Options -->
+    <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="font-semibold text-gray-900">Download Reports</h3>
+                <p class="text-gray-600 text-sm mt-1">Export detailed reports for analysis</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button type="button" class="px-4 py-2 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition">
+                    CSV
+                </button>
+                <button type="button" class="px-4 py-2 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition">
+                    Excel
+                </button>
+                <button type="button" class="px-4 py-2 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition">
+                    PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

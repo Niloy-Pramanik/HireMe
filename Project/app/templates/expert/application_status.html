@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Application Status - HireMe{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-2xl mx-auto px-4">
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <!-- Header -->
+            <div class="px-8 py-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+                <h1 class="text-2xl font-bold mb-1">Application Status</h1>
+                <p class="text-indigo-100">Application #{{ application.id }}</p>
+            </div>
+            
+            <!-- Status Badge -->
+            <div class="px-8 py-6 border-b">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Current Status</p>
+                        {% if application.status == 'pending' %}
+                        <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                            </svg>
+                            Pending Review
+                        </span>
+                        {% elif application.status == 'under_review' %}
+                        <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Under Review
+                        </span>
+                        {% elif application.status == 'approved' %}
+                        <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            Approved
+                        </span>
+                        {% elif application.status == 'rejected' %}
+                        <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                            </svg>
+                            Rejected
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm text-gray-500">Submitted</p>
+                        <p class="font-medium text-gray-900">{{ application.created_at.strftime('%B %d, %Y') }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Application Details -->
+            <div class="px-8 py-6 space-y-6">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Name</p>
+                        <p class="font-medium text-gray-900">{{ application.first_name }} {{ application.last_name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Email</p>
+                        <p class="font-medium text-gray-900">{{ application.email }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Experience</p>
+                        <p class="font-medium text-gray-900">{{ application.experience_years }} years</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Hourly Rate</p>
+                        <p class="font-medium text-gray-900">${{ application.hourly_rate }} {{ application.currency }}</p>
+                    </div>
+                </div>
+                
+                {% if application.headline %}
+                <div>
+                    <p class="text-sm text-gray-500 mb-1">Headline</p>
+                    <p class="font-medium text-gray-900">{{ application.headline }}</p>
+                </div>
+                {% endif %}
+                
+                {% if application.status == 'rejected' and application.rejection_reason %}
+                <div class="bg-red-50 rounded-xl p-4">
+                    <p class="text-sm font-medium text-red-800 mb-1">Rejection Reason</p>
+                    <p class="text-red-700">{{ application.rejection_reason }}</p>
+                </div>
+                {% endif %}
+                
+                {% if application.status == 'approved' %}
+                <div class="bg-green-50 rounded-xl p-4">
+                    <p class="text-sm font-medium text-green-800 mb-2">🎉 Congratulations!</p>
+                    <p class="text-green-700 mb-3">Your application has been approved. You should have received an email with your login credentials.</p>
+                    <a href="{{ url_for('auth.login') }}" 
+                       class="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition">
+                        Login to Your Account
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                        </svg>
+                    </a>
+                </div>
+                {% endif %}
+                
+                {% if application.reviewed_at %}
+                <div class="text-sm text-gray-500">
+                    Reviewed on {{ application.reviewed_at.strftime('%B %d, %Y at %I:%M %p') }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Footer -->
+            <div class="px-8 py-4 bg-gray-50 border-t">
+                <div class="flex justify-between items-center">
+                    <a href="{{ url_for('expert_application.check_application_status') }}" 
+                       class="text-indigo-600 hover:text-indigo-700 font-medium text-sm">
+                        ← Check Another Application
+                    </a>
+                    <a href="{{ url_for('main.index') }}" 
+                       class="text-gray-600 hover:text-gray-700 text-sm">
+                        Return to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

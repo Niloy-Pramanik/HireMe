@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ exam.exam_title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto" x-data="examHandler">
+    <!-- Start Exam Modal -->
+    <div id="examModal" x-show="!examStarted" style="display: flex;" class="fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden" @click.away="">
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-8 text-white">
+                <div class="flex items-center justify-center mb-4">
+                    <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <h2 class="text-2xl font-bold text-center">Ready to Start Exam?</h2>
+                <p class="text-center text-indigo-100 mt-2">{{ exam.exam_title }}</p>
+            </div>
+            <div class="px-6 py-6 space-y-4">
+                <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                    <div class="flex items-start space-x-3">
+                        <svg class="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        <div class="text-sm text-yellow-800">
+                            <p class="font-semibold mb-1">Important Instructions:</p>
+                            <ul class="space-y-1 list-disc list-inside">
+                                <li>Once started, the timer will continue even if you refresh the page</li>
+                                <li>The exam will auto-submit when time expires</li>
+                                <li>Do not close this tab or navigate away</li>
+                                <li>Ensure stable internet connection</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <div class="text-3xl font-bold text-indigo-600">{{ exam.duration_minutes }}</div>
+                        <div class="text-sm text-gray-600 mt-1">Minutes</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <div class="text-3xl font-bold text-purple-600">{{ questions|length }}</div>
+                        <div class="text-sm text-gray-600 mt-1">Questions</div>
+                    </div>
+                </div>
+                <div class="pt-4 flex space-x-3">
+                    <a href="{{ url_for('candidate.candidate_dashboard') }}" class="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition text-center">
+                        Cancel
+                    </a>
+                    <button @click="startExam" type="button" class="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 transition">
+                        Start Exam
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exam Content (only shown after exam started) -->
+    <div id="examContent" x-show="examStarted">
+        <!-- Exam Header (Fixed) -->
+        <div class="fixed top-16 left-0 right-0 bg-white border-b border-gray-200 z-40 px-4 py-3 shadow-sm">
+            <div class="max-w-4xl mx-auto flex items-center justify-between">
+                <div>
+                    <h1 class="text-lg font-bold text-gray-900">{{ exam.exam_title }}</h1>
+                    <p class="text-sm text-gray-600">{{ job.title }} - {{ company.company_name }}</p>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <!-- Timer -->
+                    <div class="flex items-center space-x-2 px-4 py-2 rounded-xl" 
+                        :class="timeRemaining < 300 ? 'bg-red-100 text-red-700' : 'bg-indigo-100 text-indigo-700'">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="font-bold font-mono" x-text="formatTime(timeRemaining)"></span>
+                    </div>
+                    <!-- Progress -->
+                    <div class="text-sm text-gray-600">
+                        <span class="font-bold text-gray-900" x-text="answeredCount"></span> / {{ questions|length }} answered
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spacer for fixed header -->
+        <div class="h-20"></div>
+
+        <!-- Exam Content -->
+        <form method="POST" action="{{ url_for('exam.submit_exam', attempt_id=attempt.id) }}" id="examForm" class="space-y-6 pb-24">
+        <!-- Question Navigation -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sticky top-36 z-30">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-900">Questions</h3>
+                <div class="flex items-center space-x-2 text-sm">
+                    <span class="flex items-center"><span class="w-3 h-3 bg-green-500 rounded mr-1"></span> Answered</span>
+                    <span class="flex items-center"><span class="w-3 h-3 bg-gray-200 rounded mr-1"></span> Not answered</span>
+                    <span class="flex items-center"><span class="w-3 h-3 bg-yellow-500 rounded mr-1"></span> Flagged</span>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                {% for question in questions %}
+                <button type="button" 
+                    @click="scrollToQuestion({{ loop.index }})"
+                    class="w-10 h-10 rounded-lg font-semibold transition text-sm"
+                    :class="getQuestionStatus({{ loop.index }})">
+                    {{ loop.index }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Questions -->
+        {% for question in questions %}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden" id="question-{{ loop.index }}">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <span class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center font-bold text-sm">
+                        {{ loop.index }}
+                    </span>
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2 py-0.5 text-xs font-medium rounded-full
+                            {% if question.difficulty_level == 'Easy' %}bg-green-100 text-green-700
+                            {% elif question.difficulty_level == 'Medium' %}bg-yellow-100 text-yellow-700
+                            {% else %}bg-red-100 text-red-700{% endif %}">
+                            {{ question.difficulty_level|title }}
+                        </span>
+                        <span class="text-sm text-gray-500">{{ question.points }} points</span>
+                    </div>
+                </div>
+                <button type="button" 
+                    @click="toggleFlag({{ loop.index }})"
+                    class="p-2 rounded-lg transition"
+                    :class="flagged.includes({{ loop.index }}) ? 'bg-yellow-100 text-yellow-600' : 'text-gray-400 hover:text-yellow-600 hover:bg-yellow-50'">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-900 font-medium mb-6">{{ question.question_text }}</p>
+                
+                <div class="space-y-3">
+                    {% if question.option_a %}
+                    <label class="flex items-start p-4 border-2 rounded-xl cursor-pointer transition hover:border-indigo-200"
+                        :class="answers['q{{ question.id }}'] === 'A' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'">
+                        <input type="radio" 
+                            name="q{{ question.id }}" 
+                            value="A"
+                            @change="setAnswer('q{{ question.id }}', 'A')"
+                            class="sr-only">
+                        <div class="w-6 h-6 border-2 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0 transition"
+                            :class="answers['q{{ question.id }}'] === 'A' ? 'border-indigo-600 bg-indigo-600' : 'border-gray-300'">
+                            <div class="w-2 h-2 bg-white rounded-full" x-show="answers['q{{ question.id }}'] === 'A'"></div>
+                        </div>
+                        <span class="text-gray-700"><strong>A.</strong> {{ question.option_a }}</span>
+                    </label>
+                    {% endif %}
+                    
+                    {% if question.option_b %}
+                    <label class="flex items-start p-4 border-2 rounded-xl cursor-pointer transition hover:border-indigo-200"
+                        :class="answers['q{{ question.id }}'] === 'B' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'">
+                        <input type="radio" 
+                            name="q{{ question.id }}" 
+                            value="B"
+                            @change="setAnswer('q{{ question.id }}', 'B')"
+                            class="sr-only">
+                        <div class="w-6 h-6 border-2 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0 transition"
+                            :class="answers['q{{ question.id }}'] === 'B' ? 'border-indigo-600 bg-indigo-600' : 'border-gray-300'">
+                            <div class="w-2 h-2 bg-white rounded-full" x-show="answers['q{{ question.id }}'] === 'B'"></div>
+                        </div>
+                        <span class="text-gray-700"><strong>B.</strong> {{ question.option_b }}</span>
+                    </label>
+                    {% endif %}
+                    
+                    {% if question.option_c %}
+                    <label class="flex items-start p-4 border-2 rounded-xl cursor-pointer transition hover:border-indigo-200"
+                        :class="answers['q{{ question.id }}'] === 'C' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'">
+                        <input type="radio" 
+                            name="q{{ question.id }}" 
+                            value="C"
+                            @change="setAnswer('q{{ question.id }}', 'C')"
+                            class="sr-only">
+                        <div class="w-6 h-6 border-2 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0 transition"
+                            :class="answers['q{{ question.id }}'] === 'C' ? 'border-indigo-600 bg-indigo-600' : 'border-gray-300'">
+                            <div class="w-2 h-2 bg-white rounded-full" x-show="answers['q{{ question.id }}'] === 'C'"></div>
+                        </div>
+                        <span class="text-gray-700"><strong>C.</strong> {{ question.option_c }}</span>
+                    </label>
+                    {% endif %}
+                    
+                    {% if question.option_d %}
+                    <label class="flex items-start p-4 border-2 rounded-xl cursor-pointer transition hover:border-indigo-200"
+                        :class="answers['q{{ question.id }}'] === 'D' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'">
+                        <input type="radio" 
+                            name="q{{ question.id }}" 
+                            value="D"
+                            @change="setAnswer('q{{ question.id }}', 'D')"
+                            class="sr-only">
+                        <div class="w-6 h-6 border-2 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0 transition"
+                            :class="answers['q{{ question.id }}'] === 'D' ? 'border-indigo-600 bg-indigo-600' : 'border-gray-300'">
+                            <div class="w-2 h-2 bg-white rounded-full" x-show="answers['q{{ question.id }}'] === 'D'"></div>
+                        </div>
+                        <span class="text-gray-700"><strong>D.</strong> {{ question.option_d }}</span>
+                    </label>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Submit Section -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-lg font-semibold text-gray-900">Ready to submit?</div>
+                    <p class="text-gray-600">
+                        <span x-text="answeredCount"></span> of {{ questions|length }} questions answered
+                        <span x-show="answeredCount < {{ questions|length }}" class="text-yellow-600">
+                            ({{ questions|length }} - <span x-text="answeredCount"></span> unanswered)
+                        </span>
+                    </p>
+                </div>
+                <button type="submit" 
+                    class="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 transition shadow-lg"
+                    @click="confirmSubmit($event)">
+                    Submit Exam
+                </button>
+            </div>
+        </div>
+    </form>
+    </div><!-- End x-show examStarted -->
+</div>
+
+<script>
+// Global variables for exam
+const attemptId = {{ attempt.id }};
+const examDurationSeconds = {{ (exam.duration_minutes * 60)|int }};
+
+// Register Alpine component before Alpine starts
+document.addEventListener('alpine:init', () => {
+    Alpine.data('examHandler', () => ({
+        examStarted: false,
+        timeRemaining: examDurationSeconds,
+        answers: {
+            {% for question in questions %}
+            'q{{ question.id }}': null{% if not loop.last %},{% endif %}
+            {% endfor %}
+        },
+        flagged: [],
+        timerInterval: null,
+        autoSubmitted: false,
+        
+        get answeredCount() {
+            return Object.keys(this.answers).filter(k => this.answers[k] !== null && this.answers[k] !== '').length;
+        },
+        
+        init() {
+            // Check if exam was already started
+            const examState = localStorage.getItem('exam_' + attemptId);
+            if (examState) {
+                const state = JSON.parse(examState);
+                if (state.started) {
+                    this.examStarted = true;
+                    // Calculate and start timer
+                    this.calculateTimeRemaining();
+                    this.startTimer();
+                }
+            }
+            
+            // Load saved answers from localStorage
+            const savedAnswers = localStorage.getItem('exam_answers_' + attemptId);
+            if (savedAnswers) {
+                this.answers = JSON.parse(savedAnswers);
+            }
+            
+            // Warn before leaving
+            window.addEventListener('beforeunload', (e) => {
+                if (this.examStarted && !this.autoSubmitted) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            });
+        },
+        
+        startExam() {
+            // Set state immediately
+            this.examStarted = true;
+            this.timeRemaining = examDurationSeconds;
+            
+            // Save state to localStorage
+            const state = {
+                started: true,
+                startTime: new Date().toISOString()
+            };
+            localStorage.setItem('exam_' + attemptId, JSON.stringify(state));
+            
+            // Start the timer
+            this.startTimer();
+        },
+        
+        calculateTimeRemaining() {
+            // Get start time from localStorage
+            const examState = localStorage.getItem('exam_' + attemptId);
+            if (!examState) {
+                this.timeRemaining = examDurationSeconds;
+                return;
+            }
+            
+            const state = JSON.parse(examState);
+            const startTime = new Date(state.startTime);
+            const now = new Date();
+            const elapsedSeconds = Math.floor((now - startTime) / 1000);
+            const remaining = examDurationSeconds - elapsedSeconds;
+            
+            if (remaining <= 0) {
+                this.timeRemaining = 0;
+                this.autoSubmitExam();
+            } else {
+                this.timeRemaining = remaining;
+            }
+        },
+        
+        startTimer() {
+            // Clear any existing timer
+            if (this.timerInterval) {
+                clearInterval(this.timerInterval);
+            }
+            
+            // Update timer every second
+            this.timerInterval = setInterval(() => {
+                if (this.timeRemaining > 0) {
+                    this.timeRemaining--;
+                } else {
+                    clearInterval(this.timerInterval);
+                    this.autoSubmitExam();
+                }
+            }, 1000);
+        },
+        
+        autoSubmitExam() {
+            if (!this.autoSubmitted) {
+                this.autoSubmitted = true;
+                alert('Time is up! Your exam will be submitted automatically.');
+                localStorage.removeItem('exam_' + attemptId);
+                localStorage.removeItem('exam_answers_' + attemptId);
+                document.getElementById('examForm').submit();
+            }
+        },
+        
+        formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        },
+        
+        setAnswer(questionId, value) {
+            this.answers[questionId] = value;
+            // Save answers to localStorage
+            localStorage.setItem('exam_answers_' + attemptId, JSON.stringify(this.answers));
+        },
+        
+        toggleFlag(questionNum) {
+            const idx = this.flagged.indexOf(questionNum);
+            if (idx > -1) {
+                this.flagged.splice(idx, 1);
+            } else {
+                this.flagged.push(questionNum);
+            }
+        },
+        
+        getQuestionStatus(questionNum) {
+            const questionKey = 'q' + document.querySelector(`#question-${questionNum} input, #question-${questionNum} textarea`)?.name?.replace('q', '');
+            if (this.flagged.includes(questionNum)) {
+                return 'bg-yellow-500 text-white';
+            }
+            if (this.answers[questionKey]) {
+                return 'bg-green-500 text-white';
+            }
+            return 'bg-gray-200 text-gray-600 hover:bg-gray-300';
+        },
+        
+        scrollToQuestion(num) {
+            document.getElementById(`question-${num}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        },
+        
+        confirmSubmit(event) {
+            const totalQuestions = {{ questions|length }};
+            if (this.answeredCount < totalQuestions) {
+                const unanswered = totalQuestions - this.answeredCount;
+                if (!confirm(`You have ${unanswered} unanswered questions. Are you sure you want to submit?`)) {
+                    event.preventDefault();
+                    return;
+                }
+            }
+            // Clear localStorage on submit
+            localStorage.removeItem('exam_' + attemptId);
+            localStorage.removeItem('exam_answers_' + attemptId);
+        }
+    }));
+});
+</script>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Exam Results - {{ exam.exam_title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+    <!-- Results Header -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-10 text-center text-white">
+            <div class="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center
+                {% if passed %}bg-green-400{% else %}bg-red-400{% endif %}">
+                {% if passed %}
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                {% else %}
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                {% endif %}
+            </div>
+            <h1 class="text-3xl font-bold mb-2">
+                {% if passed %}Congratulations!{% else %}Exam Completed{% endif %}
+            </h1>
+            <p class="text-indigo-100">
+                {% if passed %}
+                You have successfully passed the screening exam
+                {% else %}
+                Unfortunately, you did not meet the passing score
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="px-8 py-6">
+            <div class="text-center mb-6">
+                <div class="text-5xl font-bold {% if passed %}text-green-600{% else %}text-red-600{% endif %}">
+                    {{ score|int }}%
+                </div>
+                <div class="text-gray-500">Your Score</div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-6 py-6 border-t border-b border-gray-100">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-gray-900">{{ correct_count }}</div>
+                    <div class="text-sm text-gray-500">Correct</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-gray-900">{{ total_questions - correct_count }}</div>
+                    <div class="text-sm text-gray-500">Incorrect</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-gray-900">{{ exam.passing_score }}%</div>
+                    <div class="text-sm text-gray-500">Passing Score</div>
+                </div>
+            </div>
+
+            <div class="pt-6 text-center">
+                <h3 class="font-semibold text-gray-900 mb-2">{{ exam.exam_title }}</h3>
+                <p class="text-gray-600">{{ job.title }} at {{ company.company_name }}</p>
+                <p class="text-sm text-gray-500 mt-2">
+                    Completed on {{ attempt.completed_at.strftime('%B %d, %Y at %I:%M %p') }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Score Breakdown -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+            <h2 class="text-lg font-semibold text-gray-900">Score Breakdown</h2>
+        </div>
+        <div class="p-6">
+            <div class="w-full bg-gray-200 rounded-full h-4 mb-6">
+                <div class="h-4 rounded-full transition-all duration-500 {% if passed %}bg-green-500{% else %}bg-red-500{% endif %}" 
+                    style="width: {{ score }}%"></div>
+            </div>
+
+            {% if breakdown %}
+            <div class="space-y-4">
+                {% for category, data in breakdown.items() %}
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                    <div>
+                        <div class="font-medium text-gray-900">{{ category }}</div>
+                        <div class="text-sm text-gray-500">{{ data.correct }} of {{ data.total }} correct</div>
+                    </div>
+                    <div class="text-lg font-bold {% if data.percentage >= exam.passing_score %}text-green-600{% else %}text-red-600{% endif %}">
+                        {{ data.percentage|int }}%
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- What's Next -->
+    <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100">
+        <div class="flex items-start">
+            <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                </svg>
+            </div>
+            <div class="ml-4">
+                <h3 class="font-semibold text-gray-900">What's Next?</h3>
+                {% if passed %}
+                <p class="text-gray-600 mt-1">
+                    Your application has been updated with your exam results. The hiring team will review your application 
+                    and may reach out for the next steps in the interview process.
+                </p>
+                {% else %}
+                <p class="text-gray-600 mt-1">
+                    Consider reviewing the job requirements and brushing up on the relevant skills. 
+                    You can also explore other positions that match your skill set.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="{{ url_for('candidate.candidate_applications') }}" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 transition text-center">
+            View My Applications
+        </a>
+        <a href="{{ url_for('job.browse_jobs') }}" class="w-full sm:w-auto px-6 py-3 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition text-center">
+            Browse More Jobs
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+Hello {{ candidate_name }},
+
+Thank you for applying to {{ job_title }} at {{ company_name }}!
+
+We have successfully received your application and our team is currently reviewing it.
+
+{% if has_exam %}
+IMPORTANT: This position requires completing an online assessment.
+
+Please log in to your candidate dashboard and complete the assessment as soon as possible. The assessment must be completed before your application can be fully processed.
+
+Assessment Details:
+- Log in to view the assessment
+- Complete it at your convenience
+- Results will be reviewed by our hiring team
+{% endif %}
+
+What's Next?
+- Our hiring team will review your application
+- You will receive an update via email within the next few days
+- If selected, you will be contacted for the next steps
+
+You can track your application status by logging into your candidate dashboard.
+
+Best regards,
+HireMe Team
+{{ company_name }}

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+        .button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .alert { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 5px; }
+        .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+        .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e7eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Application Received!</h1>
+        </div>
+        <div class="content">
+            <p>Hello <strong>{{ candidate_name }}</strong>,</p>
+            
+            <p>Thank you for applying to <strong>{{ job_title }}</strong> at <strong>{{ company_name }}</strong>!</p>
+            
+            <p>We have successfully received your application and our team is currently reviewing it.</p>
+            
+            {% if has_exam %}
+            <div class="alert">
+                <h3 style="margin-top: 0;">Action Required: Complete Online Assessment</h3>
+                <p>This position requires completing an online assessment.</p>
+                <p><strong>Please log in to your candidate dashboard and complete the assessment as soon as possible.</strong> The assessment must be completed before your application can be fully processed.</p>
+                
+                <div class="info-box">
+                    <h4 style="margin-top: 0;">Assessment Details:</h4>
+                    <ul>
+                        <li>Log in to view the assessment</li>
+                        <li>Complete it at your convenience</li>
+                        <li>Results will be reviewed by our hiring team</li>
+                    </ul>
+                </div>
+                
+                <a href="#" class="button">Go to Dashboard</a>
+            </div>
+            {% endif %}
+            
+            <div class="info-box">
+                <h3 style="margin-top: 0;">What's Next?</h3>
+                <ul>
+                    <li>Our hiring team will review your application</li>
+                    <li>You will receive an update via email within the next few days</li>
+                    <li>If selected, you will be contacted for the next steps</li>
+                </ul>
+            </div>
+            
+            <p>You can track your application status by logging into your candidate dashboard.</p>
+            
+            <div class="footer">
+                <p>Best regards,<br>
+                <strong>HireMe Team</strong><br>
+                {{ company_name }}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

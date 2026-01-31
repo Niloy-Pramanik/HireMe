@@ -23,6 +23,24 @@ def notifications():
     notifications = base_q.order_by(Notification.created_at.desc()) \
                           .paginate(page=page, per_page=20, error_out=False)
 
+    # --- Auto-mark viewed notifications as read ----------------
+    # Get IDs of unread notifications on the current page
+    unread_ids = [n.id for n in notifications.items if not n.is_read]
+    if unread_ids:
+        Notification.query.filter(
+            Notification.id.in_(unread_ids)
+        ).update({'is_read': True}, synchronize_session=False)
+        db.session.commit()
+        # Update the in-memory objects so template reflects the change
+        for n in notifications.items:
+            n.is_read = True
+
+    # --- Get updated unread count after marking as read --------
+    updated_unread_count = Notification.query.filter_by(
+        user_id=session['user_id'],
+        is_read=False
+    ).count()
+
     # --- date cut-offs that the template will use --------------
     now            = datetime.utcnow()
     today_start    = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -34,7 +52,8 @@ def notifications():
         notifications   = notifications,
         today_start     = today_start,
         yesterday_start = yesterday_start,
-        week_ago        = week_ago
+        week_ago        = week_ago,
+        unread_notification_count = updated_unread_count
     )
 
 

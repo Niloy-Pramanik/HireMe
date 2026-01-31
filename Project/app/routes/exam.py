@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from datetime import datetime
 
 from extensions import db
-from models import User, CandidateProfile, JobPosting, JobApplication, MCQExam, MCQQuestion, ExamAttempt, CandidateAnswer
+from models import User, CandidateProfile, JobPosting, JobApplication, MCQExam, MCQQuestion, ExamAttempt, CandidateAnswer, Company
 
 bp = Blueprint('exam', __name__, url_prefix='/exam')
 
@@ -43,6 +43,10 @@ def take_exam(exam_id):
     # Get questions
     questions = MCQQuestion.query.filter_by(exam_id=exam_id).all()
     
+    # Get job and company info
+    job = JobPosting.query.get(exam.job_id)
+    company = job.company if job else None
+    
     # Get already answered questions
     answered = db.session.query(CandidateAnswer.question_id).filter_by(
         attempt_id=attempt.id
@@ -53,15 +57,16 @@ def take_exam(exam_id):
                          exam=exam,
                          attempt=attempt,
                          questions=questions,
-                         answered_ids=answered_ids)
+                         answered_ids=answered_ids,
+                         job=job,
+                         company=company)
 
 
-@bp.route('/submit', methods=['POST'])
-def submit_exam():
+@bp.route('/submit/<int:attempt_id>', methods=['POST'])
+def submit_exam(attempt_id):
     if 'user_id' not in session or session['user_type'] != 'candidate':
         return redirect(url_for('auth.login'))
     
-    attempt_id = request.form['attempt_id']
     attempt = ExamAttempt.query.get_or_404(attempt_id)
     
     if attempt.status == 'completed':
@@ -74,7 +79,7 @@ def submit_exam():
         correct_answers = 0
         
         for question in questions:
-            selected_answer = request.form.get(f'question_{question.id}')
+            selected_answer = request.form.get(f'q{question.id}')
             if selected_answer:
                 is_correct = selected_answer == question.correct_answer
                 if is_correct:
@@ -99,11 +104,14 @@ def submit_exam():
         attempt.score = score
         attempt.time_spent = (datetime.utcnow() - attempt.started_at).total_seconds()
         
+        # Get exam to find job_id
+        exam = MCQExam.query.get(attempt.exam_id)
+        
         # Update job application with exam score
         application = JobApplication.query.filter_by(
             candidate_id=attempt.candidate_id
         ).join(JobPosting).filter(
-            JobPosting.id == attempt.exam.job_id
+            JobPosting.id == exam.job_id
         ).first()
         
         if application:
@@ -126,7 +134,14 @@ def exam_result(attempt_id):
         return redirect(url_for('auth.login'))
     
     attempt = ExamAttempt.query.get_or_404(attempt_id)
-    exam = attempt.exam
+    exam = MCQExam.query.get(attempt.exam_id)
+    
+    # Get job and company info
+    job = JobPosting.query.get(exam.job_id)
+    company = job.company if job else None
+    
+    # Calculate if passed
+    passed = attempt.score >= exam.passing_score
     
     # Get detailed results
     answers = db.session.query(CandidateAnswer, MCQQuestion).join(MCQQuestion).filter(
@@ -136,4 +151,10 @@ def exam_result(attempt_id):
     return render_template('exam/exam_result.html',
                          attempt=attempt,
                          exam=exam,
+                         job=job,
+                         company=company,
+                         passed=passed,
+                         score=attempt.score,
+                         correct_count=attempt.correct_answers,
+                         total_questions=attempt.total_questions,
                          answers=answers)

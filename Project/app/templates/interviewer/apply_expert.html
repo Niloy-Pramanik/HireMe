@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+
+{% block title %}Complete Your Expert Application - HireMe{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Complete Your Expert Application</h1>
+        <p class="mt-2 text-gray-600">Tell us about your expertise and experience to become a verified interviewer</p>
+    </div>
+
+    <!-- Info Banner -->
+    <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-6 mb-8">
+        <div class="flex items-start space-x-4">
+            <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <h3 class="font-semibold text-emerald-800">Welcome, {{ user.first_name }}!</h3>
+                <p class="text-emerald-700 mt-1">Complete this application to become a verified expert interviewer. Once approved, you'll be able to conduct interviews and earn money.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Form -->
+    <form action="{{ url_for('interviewer.apply_expert') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+        <!-- Professional Info -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                <svg class="w-6 h-6 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                Professional Information
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Professional Headline *</label>
+                    <input type="text" name="headline" required
+                           class="form-input w-full"
+                           placeholder="e.g., Senior Software Engineer with 10+ years of experience">
+                    <p class="mt-1 text-xs text-gray-500">A short description of your professional identity</p>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Bio / About You *</label>
+                    <textarea name="bio" rows="4" required
+                              class="form-input w-full"
+                              placeholder="Tell us about your background, expertise, and what makes you a great interviewer..."></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Years of Experience *</label>
+                    <input type="number" name="experience_years" min="0" max="50" required
+                           class="form-input w-full"
+                           placeholder="e.g., 8">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">LinkedIn Profile URL</label>
+                    <input type="url" name="linkedin_url"
+                           class="form-input w-full"
+                           placeholder="https://linkedin.com/in/yourprofile">
+                </div>
+            </div>
+        </div>
+
+        <!-- Expertise & Skills -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                <svg class="w-6 h-6 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+                Expertise & Skills
+            </h2>
+            
+            <div class="space-y-6">
+                <!-- Skills Selection -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Select Your Skills *</label>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-64 overflow-y-auto p-2 border border-gray-200 rounded-xl">
+                        {% for skill in skills %}
+                        <label class="flex items-center p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="checkbox" name="skills" value="{{ skill.id }}" 
+                                   class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                            <span class="ml-2 text-sm text-gray-700">{{ skill.skill_name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <p class="mt-2 text-xs text-gray-500">Select all skills you can evaluate candidates for</p>
+                </div>
+                
+                <!-- Industries -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Industries You've Worked In</label>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {% for industry in industries %}
+                        <label class="flex items-center p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="checkbox" name="industries" value="{{ industry }}"
+                                   class="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500">
+                            <span class="ml-2 text-sm text-gray-700">{{ industry }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Certifications -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                <svg class="w-6 h-6 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                </svg>
+                Certifications (Optional)
+            </h2>
+            
+            <div id="certifications-container" class="space-y-4">
+                <div class="certification-item grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-xl">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Certification Name</label>
+                        <input type="text" name="cert_name[]" class="form-input w-full" placeholder="e.g., AWS Solutions Architect">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Issuing Organization</label>
+                        <input type="text" name="cert_org[]" class="form-input w-full" placeholder="e.g., Amazon Web Services">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Credential URL</label>
+                        <input type="url" name="cert_url[]" class="form-input w-full" placeholder="https://...">
+                    </div>
+                </div>
+            </div>
+            
+            <button type="button" onclick="addCertification()" class="mt-4 text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Add Another Certification
+            </button>
+        </div>
+
+        <!-- Rate & Compensation -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                <svg class="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Rate & Compensation
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Hourly Rate *</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
+                        <input type="number" name="hourly_rate" min="0" step="0.01" required
+                               class="form-input w-full pl-8"
+                               placeholder="50.00">
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Your expected hourly rate for conducting interviews</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Currency</label>
+                    <select name="currency" class="form-select w-full">
+                        <option value="USD">USD - US Dollar</option>
+                        <option value="EUR">EUR - Euro</option>
+                        <option value="GBP">GBP - British Pound</option>
+                        <option value="BDT">BDT - Bangladeshi Taka</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documents -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                <svg class="w-6 h-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Supporting Documents
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">CV / Resume *</label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-indigo-400 transition">
+                        <input type="file" name="cv" accept=".pdf,.doc,.docx" required
+                               class="hidden" id="cv-upload"
+                               onchange="updateFileLabel(this, 'cv-label')">
+                        <label for="cv-upload" class="cursor-pointer">
+                            <svg class="w-10 h-10 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            <p id="cv-label" class="text-sm text-gray-600">Click to upload CV (PDF, DOC, DOCX)</p>
+                        </label>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Experience Proof (Optional)</label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-indigo-400 transition">
+                        <input type="file" name="experience_proof" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                               class="hidden" id="exp-upload"
+                               onchange="updateFileLabel(this, 'exp-label')">
+                        <label for="exp-upload" class="cursor-pointer">
+                            <svg class="w-10 h-10 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            <p id="exp-label" class="text-sm text-gray-600">Upload additional proof (optional)</p>
+                        </label>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Letters of recommendation, certifications, etc.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="flex items-center justify-between">
+            <a href="{{ url_for('interviewer.interviewer_dashboard') }}" class="text-gray-600 hover:text-gray-900 font-medium">
+                ← Back to Dashboard
+            </a>
+            <button type="submit" class="px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-xl hover:opacity-90 transition shadow-lg shadow-emerald-500/30 flex items-center">
+                <span>Submit Application</span>
+                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                </svg>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function addCertification() {
+    const container = document.getElementById('certifications-container');
+    const newItem = document.createElement('div');
+    newItem.className = 'certification-item grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-xl';
+    newItem.innerHTML = `
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Certification Name</label>
+            <input type="text" name="cert_name[]" class="form-input w-full" placeholder="e.g., AWS Solutions Architect">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Issuing Organization</label>
+            <input type="text" name="cert_org[]" class="form-input w-full" placeholder="e.g., Amazon Web Services">
+        </div>
+        <div class="relative">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Credential URL</label>
+            <input type="url" name="cert_url[]" class="form-input w-full pr-10" placeholder="https://...">
+            <button type="button" onclick="this.closest('.certification-item').remove()" 
+                    class="absolute right-2 top-8 text-red-500 hover:text-red-700">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    `;
+    container.appendChild(newItem);
+}
+
+function updateFileLabel(input, labelId) {
+    const label = document.getElementById(labelId);
+    if (input.files && input.files[0]) {
+        label.textContent = input.files[0].name;
+        label.classList.add('text-indigo-600', 'font-medium');
+    }
+}
+</script>
+{% endblock %}

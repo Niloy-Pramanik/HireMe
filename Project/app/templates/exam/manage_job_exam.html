@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Exam - {{ job.title }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-2">
+                <a href="{{ url_for('employer.employer_dashboard') }}" class="hover:text-indigo-600">Dashboard</a>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+                <a href="{{ url_for('employer.employer_jobs') }}" class="hover:text-indigo-600">Jobs</a>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+                <span class="text-gray-900 font-medium">Exam</span>
+            </nav>
+            <h1 class="text-3xl font-bold text-gray-900">Manage Exam</h1>
+            <p class="mt-1 text-gray-600">Configure screening exam for {{ job.title }}</p>
+        </div>
+        {% if exam %}
+        <a href="{{ url_for('employer.manage_exam_questions', exam_id=exam.id) }}" class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 transition shadow-lg">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+            Manage Questions
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Form -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                    <h2 class="text-lg font-semibold text-gray-900">{% if exam %}Edit Exam{% else %}Create Exam{% endif %}</h2>
+                </div>
+                <form method="POST" action="{{ url_for('employer.manage_job_exam', job_id=job.id) }}" class="p-6 space-y-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Exam Title</label>
+                        <input type="text" name="title" value="{{ exam.exam_title if exam else job.title + ' Screening Exam' }}" required
+                            class="form-input w-full" placeholder="Enter exam title">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                        <textarea name="description" rows="3" class="form-input w-full" placeholder="Describe what this exam tests...">{{ exam.description if exam else '' }}</textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Time Limit (minutes)</label>
+                            <input type="number" name="time_limit" value="{{ exam.duration_minutes if exam else 30 }}" min="5" max="180"
+                                class="form-input w-full" placeholder="30">
+                            <p class="text-xs text-gray-500 mt-1">5 - 180 minutes</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Passing Score (%)</label>
+                            <input type="number" name="passing_score" value="{{ exam.passing_score if exam else 70 }}" min="0" max="100"
+                                class="form-input w-full" placeholder="70">
+                            <p class="text-xs text-gray-500 mt-1">Minimum score to pass</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Max Attempts</label>
+                            <input type="number" name="max_attempts" value="{{ exam.max_attempts if exam else 1 }}" min="1" max="5"
+                                class="form-input w-full" placeholder="1">
+                            <p class="text-xs text-gray-500 mt-1">How many times can candidate retry</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                            <select name="is_active" class="form-input w-full">
+                                <option value="1" {% if not exam or exam.is_active %}selected{% endif %}>Active</option>
+                                <option value="0" {% if exam and not exam.is_active %}selected{% endif %}>Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <label class="block text-sm font-semibold text-gray-700">Exam Options</label>
+                        <div class="space-y-3">
+                            <label class="flex items-center">
+                                <input type="checkbox" name="shuffle_questions" value="1" 
+                                    {% if exam and exam.shuffle_questions %}checked{% endif %}
+                                    class="h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-2 text-gray-700">Shuffle questions order</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="show_score_immediately" value="1"
+                                    {% if not exam or exam.show_score_immediately %}checked{% endif %}
+                                    class="h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-2 text-gray-700">Show score immediately after submission</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="require_webcam" value="1"
+                                    {% if exam and exam.require_webcam %}checked{% endif %}
+                                    class="h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-2 text-gray-700">Require webcam (proctoring)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <a href="{{ url_for('employer.employer_jobs') }}" class="text-gray-600 hover:text-gray-900 font-medium">
+                            Cancel
+                        </a>
+                        <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 transition">
+                            {% if exam %}Update Exam{% else %}Create Exam{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Exam Stats -->
+            {% if exam %}
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <h3 class="font-semibold text-gray-900 mb-4">Exam Statistics</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Questions</span>
+                        <span class="font-bold text-gray-900">{{ question_count or 0 }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Attempts</span>
+                        <span class="font-bold text-gray-900">{{ attempt_count or 0 }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Avg. Score</span>
+                        <span class="font-bold text-gray-900">{{ avg_score|int if avg_score else 'N/A' }}{% if avg_score %}%{% endif %}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Pass Rate</span>
+                        <span class="font-bold text-green-600">{{ pass_rate|int if pass_rate else 'N/A' }}{% if pass_rate %}%{% endif %}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Tips -->
+            <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100">
+                <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="ml-3 font-semibold text-gray-900">Exam Tips</h3>
+                </div>
+                <ul class="space-y-2 text-sm text-gray-600">
+                    <li class="flex items-start">
+                        <span class="text-indigo-500 mr-2">•</span>
+                        Include 10-20 questions for a 30-minute exam
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-indigo-500 mr-2">•</span>
+                        Mix easy, medium, and hard questions
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-indigo-500 mr-2">•</span>
+                        Set a realistic passing score (60-80%)
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-indigo-500 mr-2">•</span>
+                        Test the exam yourself before publishing
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Quick Actions -->
+            {% if exam %}
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <h3 class="font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                <div class="space-y-3">
+                    <a href="{{ url_for('employer.manage_exam_questions', exam_id=exam.id) }}" class="flex items-center p-3 rounded-xl hover:bg-gray-50 transition border border-gray-200">
+                        <svg class="w-5 h-5 text-indigo-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        <span class="font-medium text-gray-700">Add Questions</span>
+                    </a>
+                    <a href="#" class="flex items-center p-3 rounded-xl hover:bg-gray-50 transition border border-gray-200">
+                        <svg class="w-5 h-5 text-purple-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        <span class="font-medium text-gray-700">Preview Exam</span>
+                    </a>
+                    <a href="#" class="flex items-center p-3 rounded-xl hover:bg-gray-50 transition border border-gray-200">
+                        <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span class="font-medium text-gray-700">View Results</span>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

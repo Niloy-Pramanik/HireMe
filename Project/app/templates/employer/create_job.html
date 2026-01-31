@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="max-w-3xl mx-auto">
-        <!-- Header -->
+    <!-- Header -->
     <div class="mb-8">
         <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-4">
             <a href="{{ url_for('employer.employer_dashboard') }}" class="hover:text-indigo-600">Dashboard</a>
@@ -16,7 +16,8 @@
         <h1 class="text-3xl font-bold text-gray-900">Post a New Job</h1>
         <p class="mt-2 text-gray-600">Fill in the details to create a new job posting</p>
     </div>
-        <form method="POST" action="{{ url_for('employer.create_job') }}" class="space-y-8">
+
+    <form method="POST" action="{{ url_for('employer.create_job') }}" class="space-y-8">
         <!-- Basic Information -->
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
@@ -27,7 +28,7 @@
                     Job Details
                 </h2>
             </div>
-                        <div class="p-6 space-y-6">
+            <div class="p-6 space-y-6">
                 <div>
                     <label for="title" class="block text-sm font-semibold text-gray-700 mb-2">Job Title *</label>
                     <input type="text" id="title" name="title" required
@@ -68,7 +69,8 @@
                 </div>
             </div>
         </div>
-                <!-- Required Skills -->
+
+        <!-- Required Skills -->
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
                 <h2 class="text-lg font-semibold text-gray-900 flex items-center">
@@ -80,21 +82,50 @@
             </div>
             <div class="p-6">
                 <p class="text-sm text-gray-600 mb-4">Select the skills required for this position</p>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-64 overflow-y-auto p-2 border border-gray-200 rounded-xl">
-                    {% for skill in skills %}
-                    <label class="flex items-center space-x-2 cursor-pointer p-2 hover:bg-gray-50 rounded-lg">
-                        <input type="checkbox" name="skills" value="{{ skill.id }}" 
-                               class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
-                        <span class="text-sm text-gray-700">{{ skill.skill_name }}</span>
-                    </label>
-                    {% endfor %}
+                
+                {% set skill_categories = skills|groupby('category') %}
+                {% for category, category_skills in skill_categories %}
+                <div class="mb-6" x-data="{ expanded: true }">
+                    <button type="button" @click="expanded = !expanded" 
+                            class="w-full flex items-center justify-between text-left text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3 pb-2 border-b border-gray-200 hover:text-indigo-600 transition">
+                        <span class="flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                            </svg>
+                            {{ category or 'Other' }}
+                            <span class="ml-2 text-xs font-normal text-gray-500">({{ category_skills|length }} skills)</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 transition-transform" :class="{ 'rotate-180': !expanded }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div x-show="expanded" x-transition class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        {% for skill in category_skills %}
+                        <label class="relative cursor-pointer" x-data="{ selected: false }">
+                            <input type="checkbox" name="skills" value="{{ skill.id }}" 
+                                   @change="selected = !selected"
+                                   class="sr-only peer">
+                            <div class="p-3 border-2 rounded-xl peer-checked:border-indigo-600 peer-checked:bg-indigo-50 transition hover:border-gray-300 hover:bg-gray-50">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-gray-700 text-sm">{{ skill.skill_name }}</span>
+                                    <svg x-show="selected" class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
                 </div>
+                {% endfor %}
+                
                 {% if not skills %}
                 <p class="text-gray-500 text-sm">No skills available. Contact admin to add skills.</p>
                 {% endif %}
             </div>
         </div>
-                <!-- Experience & Compensation -->
+
+        <!-- Experience & Compensation -->
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
                 <h2 class="text-lg font-semibold text-gray-900 flex items-center">
@@ -135,7 +166,8 @@
                 <p class="text-sm text-gray-500">Leave salary fields empty if you prefer not to display compensation</p>
             </div>
         </div>
-                <!-- Actions -->
+
+        <!-- Actions -->
         <div class="flex items-center justify-between">
             <a href="{{ url_for('employer.employer_jobs') }}" class="px-6 py-3 border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:border-gray-300 hover:bg-gray-50 transition">
                 Cancel
@@ -150,10 +182,3 @@
     </form>
 </div>
 {% endblock %}
-
-
-
-
-
-
-

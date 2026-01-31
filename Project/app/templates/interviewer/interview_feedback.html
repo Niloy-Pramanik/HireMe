@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+
+{% block title %}Interview Feedback - {{ candidate_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+    <!-- Header -->
+    <div>
+        <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-4">
+            <a href="{{ url_for('interviewer.interviewer_dashboard') }}" class="hover:text-indigo-600">Dashboard</a>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+            <span class="text-gray-900 font-medium">Feedback</span>
+        </nav>
+        <h1 class="text-3xl font-bold text-gray-900">Submit Interview Feedback</h1>
+        <p class="mt-1 text-gray-600">Interview with {{ candidate_name }} for {{ job.title }}</p>
+    </div>
+
+    <!-- Interview Summary -->
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white">
+        <div class="flex items-start justify-between">
+            <div class="flex items-start space-x-4">
+                <div class="w-14 h-14 bg-white/10 backdrop-blur rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                    {{ candidate_name[0] }}
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold">{{ candidate_name }}</h2>
+                    <div class="text-indigo-100">{{ job.title }}</div>
+                    <div class="text-indigo-200 text-sm mt-1">{{ company.company_name }}</div>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-indigo-100 text-sm">Interview Date</div>
+                <div class="font-semibold">{{ interview.scheduled_time.strftime('%B %d, %Y') if interview.scheduled_time else 'N/A' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Form -->
+    <form method="POST" action="{{ url_for('interview.interview_feedback', room_code=room.room_code) }}" class="space-y-6">
+        <!-- Overall Rating -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                <h3 class="font-semibold text-gray-900">Overall Assessment</h3>
+            </div>
+            <div class="p-6" x-data="{ rating: 0 }">
+                <label class="block text-sm font-semibold text-gray-700 mb-4">Overall Rating</label>
+                <div class="flex items-center space-x-2">
+                    {% for i in range(1, 6) %}
+                    <button type="button" @click="rating = {{ i }}"
+                        class="w-12 h-12 rounded-xl border-2 transition flex items-center justify-center text-xl"
+                        :class="rating >= {{ i }} ? 'border-yellow-400 bg-yellow-50 text-yellow-500' : 'border-gray-200 hover:border-gray-300 text-gray-300'">
+                        ★
+                    </button>
+                    {% endfor %}
+                    <span class="ml-4 text-gray-600" x-show="rating > 0">
+                        <span x-text="['', 'Poor', 'Below Average', 'Average', 'Good', 'Excellent'][rating]"></span>
+                    </span>
+                </div>
+                <input type="hidden" name="overall_rating" x-bind:value="rating" required>
+            </div>
+        </div>
+
+        <!-- Core Scores -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                <h3 class="font-semibold text-gray-900">Core Assessment Scores</h3>
+                <p class="text-sm text-gray-500">Rate the candidate from 1-10 for each area</p>
+            </div>
+            <div class="p-6 space-y-6">
+                <!-- Technical Score -->
+                <div x-data="{ score: 0 }">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="font-semibold text-gray-700">Technical Skills</label>
+                        <span class="text-2xl font-bold text-indigo-600" x-text="score || '-'"></span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        {% for i in range(1, 11) %}
+                        <button type="button" @click="score = {{ i }}"
+                            class="w-10 h-10 rounded-lg text-sm font-semibold transition"
+                            :class="score >= {{ i }} ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'">
+                            {{ i }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="technical_score" x-bind:value="score">
+                </div>
+                
+                <!-- Communication Score -->
+                <div x-data="{ score: 0 }">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="font-semibold text-gray-700">Communication</label>
+                        <span class="text-2xl font-bold text-indigo-600" x-text="score || '-'"></span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        {% for i in range(1, 11) %}
+                        <button type="button" @click="score = {{ i }}"
+                            class="w-10 h-10 rounded-lg text-sm font-semibold transition"
+                            :class="score >= {{ i }} ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'">
+                            {{ i }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="communication_score" x-bind:value="score">
+                </div>
+                
+                <!-- Problem Solving Score -->
+                <div x-data="{ score: 0 }">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="font-semibold text-gray-700">Problem Solving</label>
+                        <span class="text-2xl font-bold text-indigo-600" x-text="score || '-'"></span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        {% for i in range(1, 11) %}
+                        <button type="button" @click="score = {{ i }}"
+                            class="w-10 h-10 rounded-lg text-sm font-semibold transition"
+                            :class="score >= {{ i }} ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'">
+                            {{ i }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="problem_solving_score" x-bind:value="score">
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Feedback -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                <h3 class="font-semibold text-gray-900">Detailed Feedback</h3>
+            </div>
+            <div class="p-6 space-y-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Strengths</label>
+                    <textarea name="strengths" rows="3" class="form-input w-full" 
+                        placeholder="What did the candidate do well?"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Areas for Improvement</label>
+                    <textarea name="improvements" rows="3" class="form-input w-full"
+                        placeholder="What could the candidate improve on?"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Technical Notes</label>
+                    <textarea name="technical_notes" rows="3" class="form-input w-full"
+                        placeholder="Any specific technical observations..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Additional Comments</label>
+                    <textarea name="additional_comments" rows="3" class="form-input w-full"
+                        placeholder="Any other observations or notes..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendation -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                <h3 class="font-semibold text-gray-900">Hiring Recommendation</h3>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4" x-data="{ recommendation: '' }">
+                    <label class="relative flex items-center p-4 border-2 rounded-xl cursor-pointer transition"
+                        :class="recommendation === 'strong_yes' ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:border-gray-300'">
+                        <input type="radio" name="recommendation" value="strong_yes" x-model="recommendation" class="sr-only">
+                        <div class="text-center w-full">
+                            <div class="text-2xl mb-1">🎉</div>
+                            <div class="font-semibold text-gray-900">Strong Yes</div>
+                            <div class="text-xs text-gray-500">Highly recommend</div>
+                        </div>
+                    </label>
+                    <label class="relative flex items-center p-4 border-2 rounded-xl cursor-pointer transition"
+                        :class="recommendation === 'yes' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-gray-300'">
+                        <input type="radio" name="recommendation" value="yes" x-model="recommendation" class="sr-only">
+                        <div class="text-center w-full">
+                            <div class="text-2xl mb-1">👍</div>
+                            <div class="font-semibold text-gray-900">Yes</div>
+                            <div class="text-xs text-gray-500">Recommend</div>
+                        </div>
+                    </label>
+                    <label class="relative flex items-center p-4 border-2 rounded-xl cursor-pointer transition"
+                        :class="recommendation === 'no' ? 'border-orange-600 bg-orange-50' : 'border-gray-200 hover:border-gray-300'">
+                        <input type="radio" name="recommendation" value="no" x-model="recommendation" class="sr-only">
+                        <div class="text-center w-full">
+                            <div class="text-2xl mb-1">👎</div>
+                            <div class="font-semibold text-gray-900">No</div>
+                            <div class="text-xs text-gray-500">Do not recommend</div>
+                        </div>
+                    </label>
+                    <label class="relative flex items-center p-4 border-2 rounded-xl cursor-pointer transition"
+                        :class="recommendation === 'strong_no' ? 'border-red-600 bg-red-50' : 'border-gray-200 hover:border-gray-300'">
+                        <input type="radio" name="recommendation" value="strong_no" x-model="recommendation" class="sr-only">
+                        <div class="text-center w-full">
+                            <div class="text-2xl mb-1">🚫</div>
+                            <div class="font-semibold text-gray-900">Strong No</div>
+                            <div class="text-xs text-gray-500">Strongly against</div>
+                        </div>
+                    </label>
+                </div>
+                
+                <!-- Recommendation Reason (Required) -->
+                <div class="mt-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Recommendation Reason <span class="text-red-500">*</span>
+                    </label>
+                    <textarea name="recommendation_reason" rows="4" required
+                        class="form-input w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="Please explain why you recommend or don't recommend this candidate. This is required for your final assessment..."></textarea>
+                    <p class="mt-1 text-sm text-gray-500">Provide a clear explanation to help the employer make an informed decision.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="flex items-center justify-between pt-4">
+            <a href="{{ url_for('interviewer.interviewer_dashboard') }}" class="text-gray-600 hover:text-gray-900 font-medium">
+                Cancel
+            </a>
+            <div class="flex items-center space-x-4">
+                <button type="submit" 
+                    class="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 transition shadow-lg">
+                    Submit Feedback
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

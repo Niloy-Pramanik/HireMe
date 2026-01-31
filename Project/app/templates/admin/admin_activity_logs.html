@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Activity Logs - Admin{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Activity Logs</h1>
+            <p class="mt-1 text-gray-600">Monitor system activity and user actions</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button type="button" class="px-4 py-2 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition">
+                Export Logs
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <form method="GET" action="{{ url_for('admin.admin_activity_logs') }}" class="flex flex-wrap items-end gap-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Table</label>
+                <select name="table" class="form-input">
+                    <option value="">All Tables</option>
+                    {% for table in tables %}
+                    <option value="{{ table }}" {% if table_filter == table %}selected{% endif %}>{{ table }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Operation</label>
+                <select name="operation" class="form-input">
+                    <option value="">All Operations</option>
+                    {% for op in operations %}
+                    <option value="{{ op }}" {% if operation_filter == op %}selected{% endif %}>{{ op }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Date From</label>
+                <input type="date" name="date_from" value="{{ date_from }}" class="form-input">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Date To</label>
+                <input type="date" name="date_to" value="{{ date_to }}" class="form-input">
+            </div>
+            <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition">
+                Filter
+            </button>
+            <a href="{{ url_for('admin.admin_activity_logs') }}" class="px-5 py-2.5 text-gray-600 font-semibold hover:text-gray-900 transition">
+                Clear
+            </a>
+        </form>
+    </div>
+
+    <!-- Activity Summary -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+            <div class="text-2xl font-bold text-blue-600">{{ logs.total if logs else 0 }}</div>
+            <div class="text-sm text-gray-500">Total Logs</div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+            <div class="text-2xl font-bold text-green-600">-</div>
+            <div class="text-sm text-gray-500">New Users Today</div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+            <div class="text-2xl font-bold text-purple-600">-</div>
+            <div class="text-sm text-gray-500">Applications Today</div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+            <div class="text-2xl font-bold text-yellow-600">-</div>
+            <div class="text-sm text-gray-500">Jobs Posted Today</div>
+        </div>
+    </div>
+
+    <!-- Activity Log Table -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-100">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Timestamp</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Table</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Operation</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Record ID</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for log in logs.items %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 text-sm text-gray-600">
+                            {% if log.timestamp %}
+                            <div>{{ log.timestamp.strftime('%b %d, %Y') }}</div>
+                            <div class="text-gray-400">{{ log.timestamp.strftime('%I:%M:%S %p') }}</div>
+                            {% else %}
+                            <span class="text-gray-400">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">
+                                {{ log.table_name or '-' }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold
+                                {% if log.operation_type == 'INSERT' %}bg-green-100 text-green-700
+                                {% elif log.operation_type == 'UPDATE' %}bg-blue-100 text-blue-700
+                                {% elif log.operation_type == 'DELETE' %}bg-red-100 text-red-700
+                                {% elif log.operation_type == 'DOWNLOAD_CV' %}bg-purple-100 text-purple-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ log.operation_type or '-' }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600 font-mono">
+                            {{ log.record_id or '-' }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            {{ log.user_id or 'System' }}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                            No activity logs found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if logs.pages > 1 %}
+        <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+            <div class="text-sm text-gray-600">
+                Showing {{ logs.page * logs.per_page - logs.per_page + 1 }} to {{ [logs.page * logs.per_page, logs.total]|min }} of {{ logs.total }} logs
+            </div>
+            <div class="flex items-center space-x-2">
+                {% if logs.has_prev %}
+                <a href="{{ url_for('admin.admin_activity_logs', page=logs.prev_num, table=table_filter, operation=operation_filter, date_from=date_from, date_to=date_to) }}" 
+                    class="px-3 py-1.5 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition">
+                    Previous
+                </a>
+                {% endif %}
+                {% if logs.has_next %}
+                <a href="{{ url_for('admin.admin_activity_logs', page=logs.next_num, table=table_filter, operation=operation_filter, date_from=date_from, date_to=date_to) }}"
+                    class="px-3 py-1.5 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition">
+                    Next
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

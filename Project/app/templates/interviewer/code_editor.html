@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Editor - {{ room.room_name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- CodeMirror -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1e1e1e;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+        
+        .editor-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .editor-header {
+            background: #252526;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #3c3c3c;
+            flex-shrink: 0;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .header-left h5 {
+            margin: 0;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .live-badge {
+            background: #28a745;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .header-controls {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        
+        .lang-select {
+            background: #3c3c3c;
+            color: white;
+            border: 1px solid #5a5a5a;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .lang-select:focus {
+            outline: none;
+            border-color: #0078d4;
+        }
+        
+        .btn-run {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.25rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
+        }
+        
+        .btn-run:hover { background: #218838; }
+        .btn-run:disabled { background: #6c757d; cursor: not-allowed; }
+        
+        .btn-close-tab {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        
+        .btn-close-tab:hover { background: #c82333; color: white; }
+        
+        .editor-main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        .code-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #3c3c3c;
+        }
+        
+        .panel-header {
+            background: #2d2d2d;
+            padding: 0.5rem 1rem;
+            color: #9d9d9d;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #3c3c3c;
+        }
+        
+        .CodeMirror {
+            flex: 1;
+            height: auto !important;
+            font-size: 14px;
+            font-family: 'Fira Code', 'Consolas', monospace;
+        }
+        
+        .output-panel {
+            width: 400px;
+            display: flex;
+            flex-direction: column;
+            background: #1e1e1e;
+        }
+        
+        .output-content {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 13px;
+            color: #d4d4d4;
+            white-space: pre-wrap;
+        }
+        
+        .output-content.error { color: #f48771; }
+        .output-content.success { color: #89d185; }
+        
+        .output-placeholder {
+            color: #6d6d6d;
+            font-style: italic;
+        }
+        
+        .execution-info {
+            padding: 0.5rem 1rem;
+            background: #2d2d2d;
+            color: #9d9d9d;
+            font-size: 0.8rem;
+            border-top: 1px solid #3c3c3c;
+        }
+        
+        .status-bar {
+            background: #007acc;
+            padding: 4px 1rem;
+            display: flex;
+            justify-content: space-between;
+            color: white;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-container">
+        <!-- Header -->
+        <div class="editor-header">
+            <div class="header-left">
+                <h5><i class="fas fa-code me-2"></i>Collaborative Code Editor</h5>
+                <span class="live-badge"><i class="fas fa-circle me-1" style="font-size: 8px;"></i>Live</span>
+            </div>
+            <div class="header-controls">
+                <select class="lang-select" id="languageSelect">
+                    <option value="python">Python</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="java">Java</option>
+                    <option value="cpp">C++</option>
+                    <option value="c">C</option>
+                    <option value="csharp">C#</option>
+                    <option value="php">PHP</option>
+                    <option value="ruby">Ruby</option>
+                    <option value="rust">Rust</option>
+                </select>
+                <button class="btn-run" id="runBtn" onclick="runCode()">
+                    <i class="fas fa-play"></i> Run Code
+                </button>
+                <button class="btn-close-tab" onclick="window.close()">
+                    <i class="fas fa-times me-1"></i> Close
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main Editor Area -->
+        <div class="editor-main">
+            <!-- Code Editor Panel -->
+            <div class="code-panel">
+                <div class="panel-header">
+                    <i class="fas fa-file-code me-2"></i>Code
+                </div>
+                <textarea id="codeEditor"></textarea>
+            </div>
+            
+            <!-- Output Panel -->
+            <div class="output-panel">
+                <div class="panel-header">
+                    <i class="fas fa-terminal me-2"></i>Output
+                </div>
+                <div class="output-content" id="outputContent">
+                    <span class="output-placeholder">Run your code to see output here...</span>
+                </div>
+                <div class="execution-info" id="executionInfo" style="display: none;">
+                    Execution time: <span id="execTime">0</span>ms
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span><i class="fas fa-user me-1"></i>{{ current_user_role|title }}</span>
+            <span id="statusText">Ready</span>
+            <span><i class="fas fa-clock me-1"></i><span id="currentTime"></span></span>
+        </div>
+    </div>
+    
+    <!-- CodeMirror Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/php/php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/ruby/ruby.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/rust/rust.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    
+    <script>
+        // Initialize CodeMirror
+        const editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+            mode: 'python',
+            theme: 'dracula',
+            lineNumbers: true,
+            autoCloseBrackets: true,
+            matchBrackets: true,
+            indentUnit: 4,
+            tabSize: 4,
+            indentWithTabs: false,
+            lineWrapping: true
+        });
+        
+        // Default code templates
+        const codeTemplates = {
+            python: '# Python Code\nprint("Hello, World!")\n',
+            javascript: '// JavaScript Code\nconsole.log("Hello, World!");\n',
+            java: '// Java Code\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}\n',
+            cpp: '// C++ Code\n#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello, World!" << endl;\n    return 0;\n}\n',
+            c: '// C Code\n#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}\n',
+            csharp: '// C# Code\nusing System;\n\nclass Program {\n    static void Main() {\n        Console.WriteLine("Hello, World!");\n    }\n}\n',
+            php: '<?php\n// PHP Code\necho "Hello, World!";\n',
+            ruby: '# Ruby Code\nputs "Hello, World!"\n',
+            rust: '// Rust Code\nfn main() {\n    println!("Hello, World!");\n}\n'
+        };
+        
+        // Set initial code
+        editor.setValue(codeTemplates.python);
+        
+        // Language mode mapping
+        const modeMap = {
+            python: 'python',
+            javascript: 'javascript',
+            java: 'text/x-java',
+            cpp: 'text/x-c++src',
+            c: 'text/x-csrc',
+            csharp: 'text/x-csharp',
+            php: 'php',
+            ruby: 'ruby',
+            rust: 'rust'
+        };
+        
+        // Change language
+        document.getElementById('languageSelect').addEventListener('change', function() {
+            const lang = this.value;
+            editor.setOption('mode', modeMap[lang]);
+            editor.setValue(codeTemplates[lang] || '');
+        });
+        
+        // Run code
+        async function runCode() {
+            const code = editor.getValue();
+            const language = document.getElementById('languageSelect').value;
+            const outputEl = document.getElementById('outputContent');
+            const runBtn = document.getElementById('runBtn');
+            const statusText = document.getElementById('statusText');
+            
+            // Disable button
+            runBtn.disabled = true;
+            runBtn.innerHTML = '<span class="loading-spinner"></span> Running...';
+            statusText.textContent = 'Executing code...';
+            outputEl.innerHTML = '<span class="output-placeholder">Executing...</span>';
+            outputEl.className = 'output-content';
+            
+            try {
+                const response = await fetch('/api/execute_code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, language })
+                });
+                
+                const result = await response.json();
+                
+                if (result.error) {
+                    outputEl.textContent = result.error;
+                    outputEl.className = 'output-content error';
+                } else {
+                    outputEl.textContent = result.output || '(No output)';
+                    outputEl.className = 'output-content success';
+                    
+                    // Show execution time
+                    document.getElementById('execTime').textContent = (result.execution_time * 1000).toFixed(0);
+                    document.getElementById('executionInfo').style.display = 'block';
+                }
+                
+                statusText.textContent = 'Ready';
+            } catch (err) {
+                outputEl.textContent = 'Error: ' + err.message;
+                outputEl.className = 'output-content error';
+                statusText.textContent = 'Error';
+            }
+            
+            // Re-enable button
+            runBtn.disabled = false;
+            runBtn.innerHTML = '<i class="fas fa-play"></i> Run Code';
+        }
+        
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString();
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+        
+        // Keyboard shortcut: Ctrl+Enter to run
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                runCode();
+            }
+        });
+        
+        // Socket.IO for real-time collaboration
+        const socket = io();
+        const roomId = '{{ room.id }}';
+        
+        socket.emit('join_interview', {
+            room: roomId,
+            room_code: '{{ room.room_code }}',
+            role: '{{ current_user_role }}'
+        });
+        
+        // Debounce code changes
+        let changeTimeout;
+        editor.on('change', function() {
+            clearTimeout(changeTimeout);
+            changeTimeout = setTimeout(() => {
+                socket.emit('code_change', {
+                    room: roomId,
+                    code: editor.getValue(),
+                    language: document.getElementById('languageSelect').value
+                });
+            }, 500);
+        });
+        
+        // Receive code updates
+        socket.on('code_updated', function(data) {
+            if (data.code !== editor.getValue()) {
+                const cursor = editor.getCursor();
+                editor.setValue(data.code);
+                editor.setCursor(cursor);
+            }
+            if (data.language) {
+                document.getElementById('languageSelect').value = data.language;
+                editor.setOption('mode', modeMap[data.language]);
+            }
+        });
+    </script>
+</body>
+</html>

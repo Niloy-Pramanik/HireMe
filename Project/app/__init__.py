@@ -3,6 +3,7 @@ from flask_migrate import Migrate
 from config import DevelopmentConfig
 from extensions import db, mail, socketio
 from models import *
+import realtime  # Import to register Socket.IO event handlers
 
 migrate = Migrate()
 

@@ -1,0 +1,31 @@
+Hello {{ candidate_name }},
+
+Reminder: Complete Your Assessment
+
+This is a friendly reminder that you have a pending assessment for the position of {{ job_title }} at {{ company_name }}.
+
+ASSESSMENT DETAILS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Assessment: {{ exam_title }}
+Duration: {{ exam_duration }} minutes
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+To proceed with your application, please complete the assessment as soon as possible.
+
+How to Take the Assessment:
+1. Log in to your candidate dashboard
+2. Find the pending assessment under "My Applications"
+3. Click "Take Exam" to begin
+4. Complete all questions within the time limit
+
+Important Notes:
+- The assessment must be completed in one sitting
+- Make sure you have a stable internet connection
+- The timer will start when you begin the assessment
+- You cannot pause or retake the assessment
+
+Complete your assessment now to move forward in the hiring process!
+
+Best regards,
+HireMe Team
+{{ company_name }}

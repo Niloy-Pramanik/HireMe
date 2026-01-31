@@ -4,7 +4,8 @@ from models import (
     User, InterviewRoom, InterviewParticipant, Skill,
     InterviewerProfile, InterviewerSkill, InterviewerIndustry, InterviewerCertification,
     InterviewerAvailability, InterviewerEarning, InterviewerReview, InterviewerJobRole,
-    InterviewerApplication
+    InterviewerApplication, JobApplication, JobPosting, Company, CandidateProfile, CandidateSkill,
+    JobRequiredSkill, ExamAttempt
 )
 from datetime import datetime, time
 import io
@@ -500,11 +501,11 @@ def earnings():
     ).paginate(page=page, per_page=20, error_out=False)
     
     # Calculate totals
-    total_earned = db.session.query(db.func.sum(InterviewerEarning.amount_earned)).filter(
+    total_earnings = db.session.query(db.func.sum(InterviewerEarning.amount_earned)).filter(
         InterviewerEarning.interviewer_id == profile.id
     ).scalar() or 0
     
-    pending_amount = db.session.query(db.func.sum(InterviewerEarning.amount_earned)).filter(
+    pending_earnings = db.session.query(db.func.sum(InterviewerEarning.amount_earned)).filter(
         InterviewerEarning.interviewer_id == profile.id,
         InterviewerEarning.status == 'pending'
     ).scalar() or 0
@@ -514,12 +515,21 @@ def earnings():
         InterviewerEarning.status == 'confirmed'
     ).scalar() or 0
     
+    # Calculate monthly earnings (current month)
+    from datetime import datetime
+    current_month_start = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    monthly_earnings = db.session.query(db.func.sum(InterviewerEarning.amount_earned)).filter(
+        InterviewerEarning.interviewer_id == profile.id,
+        InterviewerEarning.created_at >= current_month_start
+    ).scalar() or 0
+    
     return render_template('interviewer/earnings.html',
                          user=user,
                          profile=profile,
                          earnings=earnings_paginated,
-                         total_earned=total_earned,
-                         pending_amount=pending_amount,
+                         total_earnings=total_earnings,
+                         pending_earnings=pending_earnings,
+                         monthly_earnings=monthly_earnings,
                          confirmed_amount=confirmed_amount)
 
 
@@ -648,7 +658,86 @@ def reviews():
 # =====================================================
 # FILE DOWNLOADS
 # =====================================================
-@bp.route('/download/cv/<int:profile_id>')
+# VIEW CANDIDATE PROFILE BEFORE INTERVIEW
+# =====================================================
+@bp.route('/interview/<int:room_id>/candidate')
+def view_candidate_profile(room_id):
+    """View candidate profile and details before interview"""
+    if 'user_id' not in session or session['user_type'] != 'interviewer':
+        return redirect(url_for('auth.login'))
+    
+    user = User.query.get(session['user_id'])
+    
+    # Get interview room
+    room = InterviewRoom.query.get_or_404(room_id)
+    
+    # Verify interviewer is part of this interview
+    participant = InterviewParticipant.query.filter_by(
+        room_id=room.id,
+        user_id=session['user_id']
+    ).first()
+    
+    if not participant:
+        flash('You are not authorized to view this candidate.', 'error')
+        return redirect(url_for('interviewer.interviewer_dashboard'))
+    
+    # Get job application and related data
+    application = JobApplication.query.get(room.job_application_id)
+    job = JobPosting.query.get(application.job_id)
+    company = Company.query.get(job.company_id)
+    candidate = CandidateProfile.query.get(application.candidate_id)
+    candidate_user = User.query.get(candidate.user_id)
+    
+    # Get candidate skills
+    from models.skill import CandidateSkill, Skill
+    candidate_skills = db.session.query(CandidateSkill, Skill).join(Skill).filter(
+        CandidateSkill.candidate_id == candidate.id
+    ).all()
+    
+    # Get job required skills
+    from models.job import JobRequiredSkill
+    required_skills = db.session.query(JobRequiredSkill, Skill).join(Skill).filter(
+        JobRequiredSkill.job_id == job.id
+    ).all()
+    
+    # Categorize skills
+    candidate_skill_ids = {skill.id for _, skill in candidate_skills}
+    required_skill_ids = {skill.id for _, skill in required_skills}
+    
+    # Matched skills (candidate has AND job requires)
+    matched_skills = [(cs, skill) for cs, skill in candidate_skills if skill.id in required_skill_ids]
+    
+    # Lacked skills (job requires but candidate doesn't have)
+    lacked_skills = [(rs, skill) for rs, skill in required_skills if skill.id not in candidate_skill_ids]
+    
+    # Extra skills (candidate has but job doesn't require)
+    extra_skills = [(cs, skill) for cs, skill in candidate_skills if skill.id not in required_skill_ids]
+    
+    # Get exam result if exists
+    from models.exam import MCQExam, ExamAttempt
+    exam = MCQExam.query.filter_by(job_id=job.id).first()
+    exam_attempt = None
+    if exam:
+        exam_attempt = ExamAttempt.query.filter_by(
+            candidate_id=candidate.id,
+            exam_id=exam.id,
+            status='completed'
+        ).order_by(ExamAttempt.completed_at.desc()).first()
+    
+    return render_template('interviewer/view_candidate.html',
+                         room=room,
+                         application=application,
+                         job=job,
+                         company=company,
+                         candidate=candidate,
+                         candidate_user=candidate_user,
+                         matched_skills=matched_skills,
+                         lacked_skills=lacked_skills,
+                         extra_skills=extra_skills,
+                         exam_attempt=exam_attempt)
+
+
+# =====================================================
 def download_cv(profile_id):
     if 'user_id' not in session:
         return redirect(url_for('auth.login'))

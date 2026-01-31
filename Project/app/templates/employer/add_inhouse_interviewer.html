@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block title %}Add In-House Interviewer{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <nav class="flex items-center text-sm text-gray-500 mb-6">
+            <a href="{{ url_for('employer.employer_interviewers') }}" class="hover:text-indigo-600">Interviewers</a>
+            <svg class="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-900">Add In-House Interviewer</span>
+        </nav>
+        
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                <h1 class="text-xl font-semibold text-gray-900">Add In-House Technical Interviewer</h1>
+                <p class="text-sm text-gray-500 mt-1">Add a team member from {{ company.company_name }} as an interviewer</p>
+            </div>
+            
+            <form method="POST" action="{{ url_for('employer.add_inhouse_interviewer') }}" enctype="multipart/form-data" class="p-6 space-y-6">
+                <!-- Personal Information -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">
+                                First Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="first_name" name="first_name" required
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        </div>
+                        
+                        <div>
+                            <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">
+                                Last Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="last_name" name="last_name" required
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        </div>
+                        
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                                Email Address <span class="text-red-500">*</span>
+                            </label>
+                            <input type="email" id="email" name="email" required
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                   placeholder="colleague@company.com">
+                            <p class="text-xs text-gray-500 mt-1">They'll receive login credentials at this email</p>
+                        </div>
+                        
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
+                                Phone Number
+                            </label>
+                            <input type="tel" id="phone" name="phone"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                   placeholder="+91 9876543210">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Professional Information -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Professional Information</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="headline" class="block text-sm font-medium text-gray-700 mb-1">
+                                Professional Headline <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="headline" name="headline" required
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                   placeholder="e.g., Senior Software Engineer, Tech Lead, Engineering Manager">
+                        </div>
+                        
+                        <div>
+                            <label for="bio" class="block text-sm font-medium text-gray-700 mb-1">
+                                Bio / About
+                            </label>
+                            <textarea id="bio" name="bio" rows="3"
+                                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                      placeholder="Brief description of their expertise and experience"></textarea>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="experience_years" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Years of Experience <span class="text-red-500">*</span>
+                                </label>
+                                <input type="number" id="experience_years" name="experience_years" required
+                                       min="0" max="50"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            </div>
+                            
+                            <div>
+                                <label for="linkedin_url" class="block text-sm font-medium text-gray-700 mb-1">
+                                    LinkedIn URL
+                                </label>
+                                <input type="url" id="linkedin_url" name="linkedin_url"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                       placeholder="https://linkedin.com/in/username">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Skills -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Technical Skills</h3>
+                    <p class="text-sm text-gray-500 mb-3">Select the skills this interviewer can evaluate candidates on</p>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto p-3 border border-gray-200 rounded-lg">
+                        {% for skill in skills %}
+                        <label class="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                            <input type="checkbox" name="skills" value="{{ skill.id }}"
+                                   class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                            <span class="text-sm text-gray-700">{{ skill.skill_name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Job Roles -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Interview Specialization</h3>
+                    <p class="text-sm text-gray-500 mb-3">What type of roles can they interview for?</p>
+                    
+                    <div class="space-y-2">
+                        <div id="job-roles-container">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <input type="text" name="job_roles[]" 
+                                       class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                       placeholder="e.g., Full Stack Developer">
+                                <button type="button" onclick="addJobRole()" 
+                                        class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CV Upload -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">CV / Resume (Optional)</h3>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                        <input type="file" id="cv_file" name="cv_file" accept=".pdf,.doc,.docx" class="hidden"
+                               onchange="updateFileLabel(this)">
+                        <label for="cv_file" class="cursor-pointer">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <span class="mt-2 block text-sm text-gray-600" id="cv-file-label">
+                                Click to upload CV (PDF, DOC, DOCX)
+                            </span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Note -->
+                <div class="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                    <div class="flex">
+                        <svg class="w-5 h-5 text-blue-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <h4 class="text-sm font-medium text-blue-900">How it works</h4>
+                            <ul class="mt-1 text-sm text-blue-700 list-disc ml-4 space-y-1">
+                                <li>An account will be created for this interviewer with the provided email</li>
+                                <li>They'll receive an email with login credentials</li>
+                                <li>In-house interviewers are automatically approved</li>
+                                <li>They can update their own profile after logging in</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Submit -->
+                <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                    <a href="{{ url_for('employer.employer_interviewers') }}" 
+                       class="px-6 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="px-6 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">
+                        Add Interviewer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function addJobRole() {
+    const container = document.getElementById('job-roles-container');
+    const newInput = document.createElement('div');
+    newInput.className = 'flex items-center space-x-2 mb-2';
+    newInput.innerHTML = `
+        <input type="text" name="job_roles[]" 
+               class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+               placeholder="e.g., Backend Engineer">
+        <button type="button" onclick="this.parentElement.remove()" 
+                class="px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    `;
+    container.appendChild(newInput);
+}
+
+function updateFileLabel(input) {
+    const label = document.getElementById('cv-file-label');
+    if (input.files.length > 0) {
+        label.textContent = input.files[0].name;
+    } else {
+        label.textContent = 'Click to upload CV (PDF, DOC, DOCX)';
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if question %}Edit Question{% else %}Add Question{% endif %} - {{ exam.exam_title }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div>
+        <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-2">
+            <a href="{{ url_for('employer.employer_dashboard') }}" class="hover:text-indigo-600">Dashboard</a>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+            <a href="{{ url_for('employer.manage_exam_questions', exam_id=exam.id) }}" class="hover:text-indigo-600">Questions</a>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+            <span class="text-gray-900 font-medium">{% if question %}Edit{% else %}Add{% endif %}</span>
+        </nav>
+        <h1 class="text-3xl font-bold text-gray-900">{% if question %}Edit Question{% else %}Add Question{% endif %}</h1>
+        <p class="mt-1 text-gray-600">{{ exam.exam_title }}</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Form -->
+        <div class="lg:col-span-2">
+            <form method="POST" action="{{ url_for('employer.add_exam_question', exam_id=exam.id) if not question else url_for('employer.edit_exam_question', question_id=question.id) }}" 
+                class="space-y-6" x-data="questionForm()">
+                
+                <!-- Question Details -->
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                        <h2 class="text-lg font-semibold text-gray-900">Question Details</h2>
+                    </div>
+                    <div class="p-6 space-y-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Question Type</label>
+                            <div class="grid grid-cols-1 gap-4">
+                                <label class="relative flex items-center p-4 border-2 border-indigo-600 bg-indigo-50 rounded-xl cursor-pointer">
+                                    <input type="radio" name="question_type" value="mcq" x-model="questionType"
+                                        class="sr-only" checked>
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3 bg-indigo-600 text-white">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div class="font-semibold text-gray-900">Multiple Choice Question (MCQ)</div>
+                                            <div class="text-sm text-gray-500">Single correct answer from multiple options</div>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Question Text</label>
+                            <textarea name="question_text" rows="4" required class="form-input w-full" 
+                                placeholder="Enter your question...">{{ question.question_text if question else '' }}</textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Difficulty</label>
+                                <select name="difficulty" class="form-input w-full">
+                                    <option value="easy" {% if question and question.difficulty == 'easy' %}selected{% endif %}>Easy</option>
+                                    <option value="medium" {% if not question or question.difficulty == 'medium' %}selected{% endif %}>Medium</option>
+                                    <option value="hard" {% if question and question.difficulty == 'hard' %}selected{% endif %}>Hard</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Points</label>
+                                <input type="number" name="points" value="{{ question.points if question else 10 }}" min="1" max="100"
+                                    class="form-input w-full">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MCQ Options -->
+                <div x-show="questionType === 'mcq'" x-transition class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-gray-900">Answer Options</h2>
+                        <button type="button" @click="addOption()" class="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+                            + Add Option
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            <template x-for="(option, index) in options" :key="index">
+                                <div class="flex items-start space-x-3">
+                                    <label class="flex items-center mt-3 cursor-pointer">
+                                        <input type="radio" :name="'correct_option'" :value="index" 
+                                            x-model="correctOption"
+                                            class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                    </label>
+                                    <div class="flex-1">
+                                        <input type="text" :name="'option_' + index" x-model="option.text" required
+                                            class="form-input w-full" :placeholder="'Option ' + (index + 1)">
+                                        <input type="hidden" :name="'option_correct_' + index" :value="correctOption == index ? '1' : '0'">
+                                    </div>
+                                    <button type="button" @click="removeOption(index)" x-show="options.length > 2"
+                                        class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition mt-1">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                        <input type="hidden" name="options_count" x-bind:value="options.length">
+                        <p class="text-sm text-gray-500 mt-4">
+                            <span class="text-indigo-600">●</span> Select the radio button next to the correct answer
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex items-center justify-between">
+                    <a href="{{ url_for('employer.manage_exam_questions', exam_id=exam.id) }}" class="text-gray-600 hover:text-gray-900 font-medium">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 transition">
+                        {% if question %}Update Question{% else %}Add Question{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Tips -->
+            <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100">
+                <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="ml-3 font-semibold text-gray-900">Writing Tips</h3>
+                </div>
+                <ul class="space-y-2 text-sm text-gray-600">
+                    <li class="flex items-start">
+                        <span class="text-indigo-500 mr-2">•</span>
+                        Be clear and concise in question text
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-indigo-500 mr-2">•</span>
+                        Avoid ambiguous wording
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-indigo-500 mr-2">•</span>
+                        For MCQs, make all options plausible
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-indigo-500 mr-2">•</span>
+                        Assign more points to harder questions
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Point Guide -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <h3 class="font-semibold text-gray-900 mb-4">Point Guidelines</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Easy</span>
+                        <span class="font-medium text-green-600">5-10 points</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Medium</span>
+                        <span class="font-medium text-yellow-600">10-20 points</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Hard</span>
+                        <span class="font-medium text-red-600">20-30 points</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function questionForm() {
+    return {
+        questionType: '{{ question.question_type if question else "mcq" }}',
+        options: [
+            {% if question %}
+                { text: '{{ question.option_a|e if question.option_a else "" }}' },
+                { text: '{{ question.option_b|e if question.option_b else "" }}' },
+                { text: '{{ question.option_c|e if question.option_c else "" }}' },
+                { text: '{{ question.option_d|e if question.option_d else "" }}' }
+            {% else %}
+                { text: '' },
+                { text: '' },
+                { text: '' },
+                { text: '' }
+            {% endif %}
+        ],
+        correctOption: {% if question and question.correct_answer %}{{ 'ABCD'.index(question.correct_answer) }}{% else %}0{% endif %},
+        addOption() {
+            if (this.options.length < 6) {
+                this.options.push({ text: '' });
+            }
+        },
+        removeOption(index) {
+            if (this.options.length > 2) {
+                this.options.splice(index, 1);
+                if (this.correctOption >= this.options.length) {
+                    this.correctOption = 0;
+                }
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

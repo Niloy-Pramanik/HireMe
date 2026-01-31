@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+
+{% block title %}Apply as Expert Interviewer - HireMe{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Expert Interviewer Application</h1>
+            <p class="text-gray-600">Fill out the form below to apply as an expert interviewer</p>
+        </div>
+        
+        <!-- Application Form -->
+        <form action="{{ url_for('expert_application.apply_as_expert') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+            <!-- Personal Information -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                    <span class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </span>
+                    Personal Information
+                </h2>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                        <input type="text" name="first_name" required
+                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                        <input type="text" name="last_name" required
+                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                        <input type="email" name="email" required
+                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        <input type="tel" name="phone"
+                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Professional Information -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                    <span class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                    </span>
+                    Professional Information
+                </h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Professional Headline *</label>
+                        <input type="text" name="headline" required placeholder="e.g., Senior React Developer | 10+ Years Experience"
+                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        <p class="mt-1 text-sm text-gray-500">This will be displayed on your profile</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bio / About You *</label>
+                        <textarea name="bio" rows="4" required placeholder="Tell us about your experience and why you'd be a great interviewer..."
+                                  class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Years of Experience *</label>
+                            <input type="number" name="experience_years" required min="0" max="50"
+                                   class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">LinkedIn Profile URL</label>
+                            <input type="url" name="linkedin_url" placeholder="https://linkedin.com/in/yourprofile"
+                                   class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Job Roles You Can Interview For</label>
+                        <input type="text" name="job_roles" placeholder="e.g., React Developer, Frontend Engineer, Full Stack Developer (comma-separated)"
+                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        <p class="mt-1 text-sm text-gray-500">Enter job titles separated by commas</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Skills & Expertise -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                    <span class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </span>
+                    Skills & Expertise
+                </h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Technical Skills You Can Interview For *</label>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-64 overflow-y-auto p-2 border rounded-xl">
+                            {% for skill in skills %}
+                            <label class="flex items-center space-x-2 cursor-pointer p-2 hover:bg-gray-50 rounded-lg">
+                                <input type="checkbox" name="skills" value="{{ skill.id }}" 
+                                       class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                <span class="text-sm text-gray-700">{{ skill.skill_name }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Industries You Have Experience In *</label>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {% for industry in industries %}
+                            <label class="flex items-center space-x-2 cursor-pointer p-2 hover:bg-gray-50 rounded-lg">
+                                <input type="checkbox" name="industries" value="{{ industry }}"
+                                       class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                <span class="text-sm text-gray-700">{{ industry }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment Information -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                    <span class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </span>
+                    Payment Information
+                </h2>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Hourly Rate *</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                            <input type="number" name="hourly_rate" required min="10" step="5" placeholder="100"
+                                   class="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        </div>
+                        <p class="mt-1 text-sm text-gray-500">Average rate: $50-200/hour</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Currency</label>
+                        <select name="currency" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            <option value="USD">USD - US Dollar</option>
+                            <option value="EUR">EUR - Euro</option>
+                            <option value="GBP">GBP - British Pound</option>
+                            <option value="BDT">BDT - Bangladeshi Taka</option>
+                            <option value="INR">INR - Indian Rupee</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Documents -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                    <span class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </span>
+                    Documents
+                </h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">CV / Resume *</label>
+                        <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-indigo-400 transition">
+                            <input type="file" name="cv_file" required accept=".pdf,.doc,.docx" class="hidden" id="cv_file"
+                                   onchange="updateFileName(this, 'cv_file_name')">
+                            <label for="cv_file" class="cursor-pointer">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                </svg>
+                                <p class="mt-2 text-sm text-gray-600">Click to upload your CV</p>
+                                <p class="mt-1 text-xs text-gray-500">PDF, DOC, DOCX up to 10MB</p>
+                            </label>
+                            <p id="cv_file_name" class="mt-2 text-sm text-indigo-600 font-medium"></p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Experience Proof (Optional)</label>
+                        <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-indigo-400 transition">
+                            <input type="file" name="experience_proof" accept=".pdf,.doc,.docx,.jpg,.png" class="hidden" id="experience_proof"
+                                   onchange="updateFileName(this, 'exp_file_name')">
+                            <label for="experience_proof" class="cursor-pointer">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                </svg>
+                                <p class="mt-2 text-sm text-gray-600">Upload proof of experience/employment</p>
+                                <p class="mt-1 text-xs text-gray-500">Letters, certificates, etc.</p>
+                            </label>
+                            <p id="exp_file_name" class="mt-2 text-sm text-indigo-600 font-medium"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Certifications -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                    <span class="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                        </svg>
+                    </span>
+                    Certifications (Optional)
+                </h2>
+                
+                <div id="certifications-container" class="space-y-4">
+                    <div class="certification-entry p-4 bg-gray-50 rounded-xl">
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <input type="text" name="cert_name" placeholder="Certification Name"
+                                   class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            <input type="text" name="cert_org" placeholder="Issuing Organization"
+                                   class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            <input type="url" name="cert_url" placeholder="Credential URL"
+                                   class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="button" onclick="addCertification()" 
+                        class="mt-4 inline-flex items-center px-4 py-2 text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Add Another Certification
+                </button>
+            </div>
+            
+            <!-- Terms & Submit -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <label class="flex items-start space-x-3 cursor-pointer">
+                    <input type="checkbox" required
+                           class="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                    <span class="text-sm text-gray-600">
+                        I confirm that all information provided is accurate and I agree to the 
+                        <a href="#" class="text-indigo-600 hover:text-indigo-700">Terms of Service</a> and 
+                        <a href="#" class="text-indigo-600 hover:text-indigo-700">Privacy Policy</a>.
+                    </span>
+                </label>
+                
+                <div class="mt-6 flex justify-end space-x-4">
+                    <a href="{{ url_for('expert_application.become_expert') }}" 
+                       class="px-6 py-3 text-gray-700 font-medium hover:text-gray-900">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition shadow-lg">
+                        Submit Application
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function updateFileName(input, displayId) {
+    const fileName = input.files[0]?.name || '';
+    document.getElementById(displayId).textContent = fileName;
+}
+
+function addCertification() {
+    const container = document.getElementById('certifications-container');
+    const entry = document.createElement('div');
+    entry.className = 'certification-entry p-4 bg-gray-50 rounded-xl';
+    entry.innerHTML = `
+        <div class="grid md:grid-cols-3 gap-4">
+            <input type="text" name="cert_name" placeholder="Certification Name"
+                   class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+            <input type="text" name="cert_org" placeholder="Issuing Organization"
+                   class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+            <input type="url" name="cert_url" placeholder="Credential URL"
+                   class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+        </div>
+    `;
+    container.appendChild(entry);
+}
+</script>
+{% endblock %}

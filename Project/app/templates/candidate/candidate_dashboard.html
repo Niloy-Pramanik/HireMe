@@ -237,7 +237,7 @@
                                     {{ interview.scheduled_time.strftime('%b %d, %Y at %I:%M %p') }}
                                 </div>
                             </div>
-                            <a href="{{ url_for('interview.join_interview', room_code=interview.room_code) }}" 
+                            <a href="{{ url_for('interview.join_interview', room_code=interview.room_code) }}" hx-boost="false"
                                class="px-3 py-1.5 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition">
                                 Join
                             </a>

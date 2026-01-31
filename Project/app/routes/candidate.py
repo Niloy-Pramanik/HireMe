@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, send_file
 from sqlalchemy import and_, or_
 from datetime import datetime
 from werkzeug.utils import secure_filename
 import os
+import io
 from extensions import db
 from models import (
     User, CandidateProfile, JobPosting, JobApplication, Company, 
@@ -47,6 +48,7 @@ def get_job_recommendations(candidate_id):
     job_matches.sort(key=lambda x: x['match_score'], reverse=True)
     
     return job_matches[:10]  # Return top 10 matches
+
 @candidate_bp.route('/candidate/dashboard')
 def candidate_dashboard():
     if 'user_id' not in session or session['user_type'] != 'candidate':
@@ -177,6 +179,25 @@ def candidate_profile():
             profile.location = request.form.get('location', '')
             profile.salary_expectation = float(request.form['salary_expectation']) if request.form.get('salary_expectation') else None
             profile.summary = request.form.get('summary', '')
+            
+            # Handle profile picture upload
+            profile_picture = request.files.get('profile_picture')
+            if profile_picture and profile_picture.filename:
+                allowed_img_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+                file_ext = profile_picture.filename.rsplit('.', 1)[1].lower() if '.' in profile_picture.filename else ''
+                if file_ext in allowed_img_extensions:
+                    try:
+                        # Save new profile picture to database as binary
+                        picture_binary = profile_picture.read()
+                        picture_mimetype = profile_picture.mimetype
+                        
+                        profile.profile_picture = picture_binary
+                        profile.profile_picture_mimetype = picture_mimetype
+                        flash('Profile picture updated successfully!', 'success')
+                    except Exception as e:
+                        flash(f'Error uploading profile picture: {str(e)}', 'warning')
+                else:
+                    flash('Invalid image format. Please upload PNG, JPG, JPEG, GIF, or WEBP.', 'warning')
             
             # Handle CV file upload
             cv_file = request.files.get('cv_file')
@@ -388,3 +409,27 @@ def candidate_interviews():
                           profile=profile,
                           upcoming_interviews=upcoming_interviews,
                           past_interviews=past_interviews)
+
+
+@candidate_bp.route('/candidate/profile_picture/<int:candidate_id>')
+def get_profile_picture(candidate_id):
+    """Serve candidate profile picture from database"""
+    profile = CandidateProfile.query.get_or_404(candidate_id)
+    
+    if not profile.profile_picture:
+        # Return default avatar if no picture
+        default_svg = '''<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="100" fill="#E5E7EB"/>
+            <g fill="#9CA3AF">
+                <circle cx="100" cy="75" r="30"/>
+                <path d="M 100 105 Q 60 105 40 145 L 160 145 Q 140 105 100 105 Z"/>
+            </g>
+        </svg>'''
+        return default_svg, 200, {'Content-Type': 'image/svg+xml'}
+    
+    # Return the image from database
+    return send_file(
+        io.BytesIO(profile.profile_picture),
+        mimetype=profile.profile_picture_mimetype,
+        as_attachment=False
+    )

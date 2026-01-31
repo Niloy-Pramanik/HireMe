@@ -99,7 +99,7 @@
                                 {{ notification.created_at.strftime('%b %d, %Y at %I:%M %p') if notification.created_at else '' }}
                             </span>
                             {% if notification.action_url %}
-                            <a href="{{ notification.action_url }}" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                            <a href="{{ notification.action_url }}" hx-boost="false" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
                                 View Details →
                             </a>
                             {% endif %}
