@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block title %}Reviews - Interviewer{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <nav class="flex items-center text-sm text-gray-500 mb-4">
+                <a href="{{ url_for('interviewer.profile') }}" class="hover:text-indigo-600">Profile</a>
+                <svg class="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                </svg>
+                <span class="text-gray-900">Reviews</span>
+            </nav>
+            <h1 class="text-3xl font-bold text-gray-900">Reviews & Feedback</h1>
+            <p class="text-gray-600 mt-1">See what employers have to say about your interview sessions</p>
+        </div>
+        
+        <!-- Rating Summary -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 mb-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div class="flex items-center mb-4 md:mb-0">
+                    {% if profile.average_rating > 0 %}
+                    <div class="text-5xl font-bold text-gray-900">{{ "%.1f"|format(profile.average_rating) }}</div>
+                    <div class="ml-4">
+                        <div class="flex items-center">
+                            {% for i in range(5) %}
+                            <svg class="w-6 h-6 {% if i < profile.average_rating|round %}text-yellow-400{% else %}text-gray-300{% endif %}" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            {% endfor %}
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">Based on {{ reviews|length }} review{% if reviews|length != 1 %}s{% endif %}</p>
+                    </div>
+                    {% else %}
+                    <div class="text-gray-400">
+                        <div class="flex items-center">
+                            {% for i in range(5) %}
+                            <svg class="w-6 h-6 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            {% endfor %}
+                        </div>
+                        <p class="text-sm mt-1">No ratings yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Rating Distribution -->
+                {% if reviews %}
+                <div class="space-y-2 w-full md:w-64">
+                    {% for star in range(5, 0, -1) %}
+                    {% set count = reviews|selectattr('rating', 'equalto', star)|list|length %}
+                    {% set percentage = (count / reviews|length * 100) if reviews|length > 0 else 0 %}
+                    <div class="flex items-center">
+                        <span class="text-sm text-gray-600 w-8">{{ star }}★</span>
+                        <div class="flex-1 mx-2 bg-gray-200 rounded-full h-2">
+                            <div class="bg-yellow-400 h-2 rounded-full" style="width: {{ percentage }}%"></div>
+                        </div>
+                        <span class="text-sm text-gray-500 w-8">{{ count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Reviews List -->
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">All Reviews</h2>
+            </div>
+            
+            {% if reviews %}
+            <div class="divide-y divide-gray-200">
+                {% for review in reviews %}
+                <div class="p-6">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <div class="flex items-center mb-1">
+                                {% for i in range(5) %}
+                                <svg class="w-5 h-5 {% if i < review.rating %}text-yellow-400{% else %}text-gray-300{% endif %}" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                </svg>
+                                {% endfor %}
+                                <span class="ml-2 text-sm font-medium text-gray-900">{{ review.rating }}/5</span>
+                            </div>
+                            <p class="text-sm text-gray-500">
+                                {% if review.is_anonymous %}
+                                Anonymous
+                                {% else %}
+                                {{ review.reviewer.first_name }} {{ review.reviewer.last_name }}
+                                {% endif %}
+                                • {{ review.created_at.strftime('%B %d, %Y') }}
+                            </p>
+                        </div>
+                        
+                        {% if review.would_recommend %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Recommended
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if review.review_text %}
+                    <p class="text-gray-700 mb-4">{{ review.review_text }}</p>
+                    {% endif %}
+                    
+                    <!-- Specific Ratings -->
+                    {% if review.technical_rating or review.communication_rating or review.professionalism_rating or review.punctuality_rating %}
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 pt-4 border-t border-gray-100">
+                        {% if review.technical_rating %}
+                        <div class="text-center p-2 bg-gray-50 rounded-lg">
+                            <div class="text-lg font-semibold text-gray-900">{{ review.technical_rating }}</div>
+                            <div class="text-xs text-gray-500">Technical</div>
+                        </div>
+                        {% endif %}
+                        {% if review.communication_rating %}
+                        <div class="text-center p-2 bg-gray-50 rounded-lg">
+                            <div class="text-lg font-semibold text-gray-900">{{ review.communication_rating }}</div>
+                            <div class="text-xs text-gray-500">Communication</div>
+                        </div>
+                        {% endif %}
+                        {% if review.professionalism_rating %}
+                        <div class="text-center p-2 bg-gray-50 rounded-lg">
+                            <div class="text-lg font-semibold text-gray-900">{{ review.professionalism_rating }}</div>
+                            <div class="text-xs text-gray-500">Professionalism</div>
+                        </div>
+                        {% endif %}
+                        {% if review.punctuality_rating %}
+                        <div class="text-center p-2 bg-gray-50 rounded-lg">
+                            <div class="text-lg font-semibold text-gray-900">{{ review.punctuality_rating }}</div>
+                            <div class="text-xs text-gray-500">Punctuality</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if review.interview %}
+                    <div class="mt-3 text-sm text-gray-400">
+                        Interview: {{ review.interview.job.title if review.interview.job else 'Technical Interview' }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if pagination and pagination.pages > 1 %}
+            <div class="px-6 py-4 border-t border-gray-200">
+                <nav class="flex justify-center">
+                    <ul class="flex items-center space-x-1">
+                        {% if pagination.has_prev %}
+                        <li>
+                            <a href="{{ url_for('interviewer.reviews', page=pagination.prev_num) }}" 
+                               class="px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50">
+                                Previous
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for page_num in pagination.iter_pages() %}
+                            {% if page_num %}
+                                {% if page_num == pagination.page %}
+                                <li>
+                                    <span class="px-4 py-2 rounded-lg bg-indigo-600 text-white">{{ page_num }}</span>
+                                </li>
+                                {% else %}
+                                <li>
+                                    <a href="{{ url_for('interviewer.reviews', page=page_num) }}" 
+                                       class="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50">
+                                        {{ page_num }}
+                                    </a>
+                                </li>
+                                {% endif %}
+                            {% else %}
+                            <li><span class="px-2">...</span></li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if pagination.has_next %}
+                        <li>
+                            <a href="{{ url_for('interviewer.reviews', page=pagination.next_num) }}" 
+                               class="px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50">
+                                Next
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No reviews yet</h3>
+                <p class="mt-1 text-sm text-gray-500">Complete interviews to receive feedback from employers.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

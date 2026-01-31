@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Job Recommendations{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div>
+            <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-2">
+                <a href="{{ url_for('candidate.candidate_dashboard') }}" class="hover:text-indigo-600">Dashboard</a>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+                <span class="text-gray-900 font-medium">Recommendations</span>
+            </nav>
+            <h1 class="text-3xl font-bold text-gray-900">Job Recommendations</h1>
+            <p class="mt-1 text-gray-600">Personalized job matches based on your skills and experience</p>
+        </div>
+        <div class="mt-4 md:mt-0 flex space-x-3">
+            <a href="{{ url_for('candidate.candidate_skill_analysis') }}" class="px-5 py-2.5 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:border-gray-300 hover:bg-gray-50 transition flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                <span>Skill Analysis</span>
+            </a>
+            <a href="{{ url_for('job.browse_jobs') }}" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:opacity-90 transition shadow-lg shadow-indigo-500/25 flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <span>Browse All Jobs</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Recommendations Grid -->
+    {% if recommendations %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for rec in recommendations %}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition overflow-hidden group">
+            <!-- Match Badge -->
+            <div class="relative p-6 pb-4">
+                <div class="absolute top-4 right-4">
+                    <div class="px-3 py-1.5 rounded-full text-sm font-bold
+                        {% if rec.match_score >= 80 %}bg-gradient-to-r from-green-500 to-emerald-500 text-white
+                        {% elif rec.match_score >= 60 %}bg-gradient-to-r from-yellow-500 to-orange-500 text-white
+                        {% else %}bg-gray-100 text-gray-700{% endif %}">
+                        {{ rec.match_score }}% Match
+                    </div>
+                </div>
+                
+                <!-- Company Logo -->
+                <div class="w-14 h-14 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center mb-4">
+                    <span class="text-xl font-bold text-indigo-600">{{ rec.company.company_name[0] }}</span>
+                </div>
+                
+                <!-- Job Info -->
+                <h3 class="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition mb-1">
+                    <a href="{{ url_for('job.job_details', job_id=rec.job.id) }}">{{ rec.job.title }}</a>
+                </h3>
+                <p class="text-gray-600">{{ rec.company.company_name }}</p>
+                
+                <!-- Meta Info -->
+                <div class="flex flex-wrap gap-2 mt-4">
+                    <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">
+                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        </svg>
+                        {{ rec.job.location or 'Remote' }}
+                    </span>
+                    <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">
+                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        {{ rec.job.job_type }}
+                    </span>
+                </div>
+                
+                {% if rec.job.salary_min and rec.job.salary_max %}
+                <div class="mt-4 flex items-center text-green-600 font-semibold">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    ${{ "{:,.0f}".format(rec.job.salary_min) }} - ${{ "{:,.0f}".format(rec.job.salary_max) }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Actions -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <div class="flex items-center space-x-3">
+                    <a href="{{ url_for('job.apply_job', job_id=rec.job.id) }}" 
+                       class="flex-1 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-center font-semibold rounded-xl hover:opacity-90 transition text-sm">
+                        Apply Now
+                    </a>
+                    <a href="{{ url_for('job.job_details', job_id=rec.job.id) }}" 
+                       class="px-4 py-2.5 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-100 transition text-sm">
+                        Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+        <div class="w-20 h-20 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full mx-auto mb-6 flex items-center justify-center">
+            <svg class="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">No recommendations yet</h3>
+        <p class="text-gray-600 mb-6 max-w-md mx-auto">Complete your profile and add your skills to get personalized job recommendations</p>
+        <a href="{{ url_for('candidate.candidate_profile') }}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:opacity-90 transition">
+            Complete Your Profile
+            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+            </svg>
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

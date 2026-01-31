@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ room.room_name }} - Interview</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #202124;
+            --bg-secondary: #303134;
+            --bg-tertiary: #3c4043;
+            --text-primary: #e8eaed;
+            --text-secondary: #9aa0a6;
+            --accent-blue: #8ab4f8;
+            --accent-green: #81c995;
+            --accent-red: #f28b82;
+            --border-color: #5f6368;
+        }
+        
+        body {
+            font-family: 'Google Sans', 'Segoe UI', Roboto, Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Main Layout */
+        .meeting-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        /* Header */
+        .meeting-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            height: 56px;
+        }
+        
+        .meeting-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .meeting-title {
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        .meeting-code {
+            font-size: 13px;
+            color: var(--text-secondary);
+            background: var(--bg-tertiary);
+            padding: 4px 12px;
+            border-radius: 4px;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Main Content */
+        .meeting-main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Video Grid Area */
+        .video-area {
+            flex: 1;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: margin-right 0.3s ease;
+        }
+        
+        .video-area.sidebar-open {
+            margin-right: 360px;
+        }
+        
+        .video-grid {
+            display: grid;
+            gap: 8px;
+            width: 100%;
+            height: 100%;
+            max-width: 1400px;
+            max-height: calc(100vh - 160px);
+        }
+        
+        /* Grid layouts based on participant count */
+        .video-grid.grid-1 {
+            grid-template-columns: 1fr;
+            max-width: 960px;
+        }
+        
+        .video-grid.grid-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .video-grid.grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        .video-grid.grid-4 {
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+        }
+        
+        .video-grid.grid-5,
+        .video-grid.grid-6 {
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+        }
+        
+        .video-grid.grid-many {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-auto-rows: minmax(200px, 1fr);
+        }
+        
+        /* When candidate-main exists, use special layout */
+        .video-grid.has-candidate-main {
+            display: grid;
+            grid-template-columns: 2.5fr 1fr;
+            grid-auto-rows: minmax(200px, auto);
+            gap: 12px;
+            align-items: start;
+        }
+        
+        /* Video Tile */
+        .video-tile {
+            position: relative;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+            min-height: 200px;
+        }
+        
+        /* Screen Share Tile - Larger display */
+        .video-tile.screen-share {
+            grid-column: 1 / -1;
+            aspect-ratio: 16/9;
+            min-height: 400px;
+        }
+        
+        /* Candidate Main Tile - Prominent display for candidate */
+        .video-tile.candidate-main {
+            grid-column: 1;
+            grid-row: 1 / -1;
+            min-height: 500px;
+            height: 100%;
+        }
+        
+        /* Other participants on the right side */
+        .video-grid.has-candidate-main .video-tile:not(.candidate-main):not(.screen-share) {
+            grid-column: 2;
+            min-height: 200px;
+            max-height: 250px;
+        }
+        
+        /* Candidate badge indicator */
+        .video-tile.candidate-main .name-label::before {
+            content: '👤 CANDIDATE';
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-right: 8px;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Camera tile during screen share - Picture in Picture */
+        .video-tile.camera-pip {
+            position: fixed;
+            bottom: 96px;
+            right: 24px;
+            width: 240px;
+            height: 135px;
+            z-index: 50;
+            border: 2px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Adjust PIP position when sidebar is open */
+        .video-area.sidebar-open .video-tile.camera-pip {
+            right: 384px;
+        }
+        
+        .video-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .video-container video.mirror {
+            transform: scaleX(-1);
+        }
+        
+        .avatar-placeholder {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 500;
+            color: white;
+        }
+        
+        .name-label {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            right: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        .name-label .name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .audio-indicator {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+        
+        /* Controls Bar */
+        .controls-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            gap: 12px;
+        }
+        
+        .control-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .control-btn:hover {
+            background: var(--border-color);
+        }
+        
+        .control-btn.btn-danger {
+            background: var(--accent-red);
+            color: var(--bg-primary);
+        }
+        
+        .control-btn.btn-danger:hover {
+            background: #e57373;
+        }
+        
+        .control-btn.active {
+            background: var(--accent-blue);
+            color: var(--bg-primary);
+        }
+        
+        .control-btn.leave-btn {
+            background: #d93025;
+            width: 56px;
+            height: 40px;
+            border-radius: 20px;
+            padding: 0 20px;
+        }
+        
+        .control-btn.leave-btn:hover {
+            background: #b71c1c;
+        }
+        
+        .controls-left, .controls-center, .controls-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .controls-left {
+            position: absolute;
+            left: 16px;
+        }
+        
+        .controls-right {
+            position: absolute;
+            right: 16px;
+        }
+        
+        /* Badge */
+        .badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            min-width: 18px;
+            height: 18px;
+            background: var(--accent-red);
+            color: white;
+            font-size: 11px;
+            font-weight: 500;
+            border-radius: 9px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 56px;
+            right: -360px;
+            width: 360px;
+            height: calc(100vh - 56px - 80px);
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+        
+        .sidebar.open {
+            right: 0;
+        }
+        
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .sidebar-header h3 {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .sidebar-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px;
+        }
+        
+        .sidebar-close:hover {
+            color: var(--text-primary);
+        }
+        
+        /* Chat Panel */
+        .chat-panel, .participants-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .chat-message {
+            max-width: 85%;
+        }
+        
+        .chat-message.sent {
+            align-self: flex-end;
+        }
+        
+        .chat-message.received {
+            align-self: flex-start;
+        }
+        
+        .message-header {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+        
+        .message-header .sender {
+            color: var(--accent-blue);
+            font-weight: 500;
+        }
+        
+        .message-header .time {
+            color: var(--text-secondary);
+        }
+        
+        .message-body {
+            background: var(--bg-tertiary);
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        
+        .chat-message.sent .message-body {
+            background: #1a73e8;
+            color: white;
+        }
+        
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .chat-input-area input {
+            flex: 1;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 10px 16px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+        }
+        
+        .chat-input-area input:focus {
+            border-color: var(--accent-blue);
+        }
+        
+        .chat-input-area input::placeholder {
+            color: var(--text-secondary);
+        }
+        
+        .chat-input-area button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: var(--accent-blue);
+            color: var(--bg-primary);
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        .chat-input-area button:hover {
+            background: #7aa8f2;
+        }
+        
+        /* Participants Panel */
+        .participants-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+        
+        .participant-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+        }
+        
+        .participant-item:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        .participant-item.self {
+            background: rgba(138, 180, 248, 0.1);
+        }
+        
+        .participant-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 500;
+            color: white;
+        }
+        
+        .participant-info {
+            flex: 1;
+        }
+        
+        .participant-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .participant-role {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .participant-role.role-interviewer {
+            color: var(--accent-green);
+        }
+        
+        .participant-role.role-candidate {
+            color: var(--accent-blue);
+        }
+        
+        .participant-actions {
+            color: var(--text-secondary);
+        }
+        
+        /* Notifications */
+        .notifications {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .notification {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            animation: slideIn 0.3s ease;
+        }
+        
+        .notification.fade-out {
+            animation: fadeOut 0.3s ease forwards;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7c7c7c;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                right: -100%;
+            }
+            
+            .video-area.sidebar-open {
+                margin-right: 0;
+            }
+            
+            .video-area.sidebar-open .video-tile.camera-pip {
+                right: 16px;
+            }
+            
+            .video-grid.grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .video-grid.grid-3 {
+                grid-template-columns: 1fr;
+            }
+            
+            /* Stack vertically on mobile */
+            .video-grid.has-candidate-main {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+            }
+            
+            .video-tile.candidate-main {
+                grid-row: 1;
+                min-height: 300px;
+            }
+            
+            .video-grid.has-candidate-main .video-tile:not(.candidate-main) {
+                grid-column: 1;
+                min-height: 180px;
+            }
+            
+            .video-tile.camera-pip {
+                width: 160px;
+                height: 90px;
+                bottom: 88px;
+                right: 16px;
+            }
+            
+            .controls-left, .controls-right {
+                position: static;
+            }
+            
+            .controls-bar {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body hx-boost="false">
+    <div class="meeting-container">
+        <!-- Header -->
+        <header class="meeting-header">
+            <div class="meeting-info">
+                <div class="meeting-title">{{ room.room_name }}</div>
+                <div class="meeting-code">{{ room.room_code }}</div>
+            </div>
+            <div class="header-actions">
+                <span style="color: var(--text-secondary); font-size: 14px;">
+                    {{ company.company_name }} • {{ job.title }}
+                </span>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <main class="meeting-main">
+            <!-- Video Grid -->
+            <div class="video-area" id="videoArea">
+                <div class="video-grid grid-1" id="videoGrid">
+                    <!-- Video tiles will be added dynamically -->
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <!-- Chat Panel -->
+                <div class="chat-panel" id="chatPanel" style="display: flex;">
+                    <div class="sidebar-header">
+                        <h3>In-call messages</h3>
+                        <button class="sidebar-close" id="btnCloseSidebar">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="chat-messages" id="chatMessages">
+                        <!-- Chat messages will be added here -->
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chatInput" placeholder="Send a message to everyone">
+                        <button id="btnSendMessage">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Participants Panel -->
+                <div class="participants-panel" id="participantsPanel" style="display: none;">
+                    <div class="sidebar-header">
+                        <h3>People (<span id="participantCount">1</span>)</h3>
+                        <button class="sidebar-close" id="btnCloseSidebar2">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="participants-list" id="participantsList">
+                        <!-- Participants will be added here -->
+                    </div>
+                </div>
+            </aside>
+        </main>
+        
+        <!-- Controls Bar -->
+        <footer class="controls-bar">
+            <div class="controls-center">
+                <button class="control-btn" id="btnMic" title="Toggle microphone">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="control-btn" id="btnCamera" title="Toggle camera">
+                    <i class="fas fa-video"></i>
+                </button>
+                <button class="control-btn" id="btnScreenShare" title="Share screen">
+                    <i class="fas fa-desktop"></i>
+                </button>
+                <a href="{{ url_for('interview.code_editor', room_code=room.room_code) }}" target="_blank" class="control-btn" title="Open Coding IDE">
+                    <i class="fas fa-code"></i>
+                </a>
+                <button class="control-btn" id="btnParticipants" title="Show participants">
+                    <i class="fas fa-users"></i>
+                </button>
+                <button class="control-btn" id="btnChat" title="Chat">
+                    <i class="fas fa-comment-alt"></i>
+                    <span class="badge" id="chatBadge">0</span>
+                </button>
+                <button class="control-btn leave-btn" id="btnLeave" title="Leave meeting">
+                    <i class="fas fa-phone" style="transform: rotate(135deg);"></i>
+                </button>
+            </div>
+        </footer>
+        
+        <!-- Notifications -->
+        <div class="notifications" id="notifications"></div>
+    </div>
+    
+    <!-- Hidden local video for reference -->
+    <video id="localVideo" autoplay muted playsinline style="display: none;"></video>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    
+    <!-- Meeting Configuration -->
+    <script>
+    // Clean up any existing meeting room on page load/reload
+    (function() {
+        // Clear existing meeting state
+        if (window.meetingRoom) {
+            try {
+                if (window.meetingRoom.localStream) {
+                    window.meetingRoom.localStream.getTracks().forEach(function(t) { t.stop(); });
+                }
+                if (window.meetingRoom.socket) {
+                    window.meetingRoom.socket.disconnect();
+                }
+                window.meetingRoom.peers && window.meetingRoom.peers.forEach(function(pc) { pc.close(); });
+            } catch(e) { console.log('Cleanup error:', e); }
+            window.meetingRoom = null;
+        }
+        
+        // Clear video grid
+        var videoGrid = document.getElementById('videoGrid');
+        if (videoGrid) {
+            videoGrid.innerHTML = '';
+        }
+        
+        // Reset flags
+        window._MeetingRoomLoaded = false;
+        window._sidebarObserverSet = false;
+    })();
+    
+    window.meetingConfig = {
+        roomId: {{ room.id }},
+        roomCode: "{{ room.room_code }}",
+        userId: {{ current_user.id }},
+        username: "{{ current_user.first_name }} {{ current_user.last_name }}",
+        userRole: "{{ current_user_role }}"
+    };
+    
+    // Sidebar observer
+    var closeBtn2 = document.getElementById('btnCloseSidebar2');
+    if (closeBtn2) {
+        closeBtn2.onclick = function() {
+            var sidebar = document.getElementById('sidebar');
+            var videoArea = document.getElementById('videoArea');
+            if (sidebar) sidebar.classList.remove('open');
+            if (videoArea) videoArea.classList.remove('sidebar-open');
+        };
+    }
+    </script>
+    
+    <!-- Meeting Room Script -->
+    <script src="{{ url_for('static', filename='js/interview_room.js') }}"></script>
+</body>
+</html>

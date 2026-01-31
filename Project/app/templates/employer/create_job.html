@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block title %}Post New Job{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-4">
+            <a href="{{ url_for('employer.employer_dashboard') }}" class="hover:text-indigo-600">Dashboard</a>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+            <span class="text-gray-900 font-medium">Post New Job</span>
+        </nav>
+        <h1 class="text-3xl font-bold text-gray-900">Post a New Job</h1>
+        <p class="mt-2 text-gray-600">Fill in the details to create a new job posting</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('employer.create_job') }}" class="space-y-8">
+        <!-- Basic Information -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                    Job Details
+                </h2>
+            </div>
+            <div class="p-6 space-y-6">
+                <div>
+                    <label for="title" class="block text-sm font-semibold text-gray-700 mb-2">Job Title *</label>
+                    <input type="text" id="title" name="title" required
+                           class="form-input w-full"
+                           placeholder="e.g. Senior Software Engineer">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="job_type" class="block text-sm font-semibold text-gray-700 mb-2">Job Type *</label>
+                        <select id="job_type" name="job_type" required class="form-input w-full">
+                            <option value="Full-time">Full-time</option>
+                            <option value="Part-time">Part-time</option>
+                            <option value="Contract">Contract</option>
+                            <option value="Internship">Internship</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="location" class="block text-sm font-semibold text-gray-700 mb-2">Location</label>
+                        <input type="text" id="location" name="location"
+                               class="form-input w-full"
+                               placeholder="e.g. New York, NY or Remote">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="description" class="block text-sm font-semibold text-gray-700 mb-2">Job Description *</label>
+                    <textarea id="description" name="description" rows="6" required
+                              class="form-input w-full"
+                              placeholder="Describe the role, responsibilities, and what makes this opportunity exciting..."></textarea>
+                </div>
+
+                <div>
+                    <label for="requirements" class="block text-sm font-semibold text-gray-700 mb-2">Requirements</label>
+                    <textarea id="requirements" name="requirements" rows="4"
+                              class="form-input w-full"
+                              placeholder="List the required qualifications, skills, and experience..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Required Skills -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                    Required Skills
+                </h2>
+            </div>
+            <div class="p-6">
+                <p class="text-sm text-gray-600 mb-4">Select the skills required for this position</p>
+                
+                {% set skill_categories = skills|groupby('category') %}
+                {% for category, category_skills in skill_categories %}
+                <div class="mb-6" x-data="{ expanded: true }">
+                    <button type="button" @click="expanded = !expanded" 
+                            class="w-full flex items-center justify-between text-left text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3 pb-2 border-b border-gray-200 hover:text-indigo-600 transition">
+                        <span class="flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                            </svg>
+                            {{ category or 'Other' }}
+                            <span class="ml-2 text-xs font-normal text-gray-500">({{ category_skills|length }} skills)</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 transition-transform" :class="{ 'rotate-180': !expanded }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div x-show="expanded" x-transition class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        {% for skill in category_skills %}
+                        <label class="relative cursor-pointer" x-data="{ selected: false }">
+                            <input type="checkbox" name="skills" value="{{ skill.id }}" 
+                                   @change="selected = !selected"
+                                   class="sr-only peer">
+                            <div class="p-3 border-2 rounded-xl peer-checked:border-indigo-600 peer-checked:bg-indigo-50 transition hover:border-gray-300 hover:bg-gray-50">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-gray-700 text-sm">{{ skill.skill_name }}</span>
+                                    <svg x-show="selected" class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+                
+                {% if not skills %}
+                <p class="text-gray-500 text-sm">No skills available. Contact admin to add skills.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Experience & Compensation -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Experience & Compensation
+                </h2>
+            </div>
+            <div class="p-6 space-y-6">
+                <div>
+                    <label for="experience_required" class="block text-sm font-semibold text-gray-700 mb-2">Required Experience (Years)</label>
+                    <input type="number" id="experience_required" name="experience_required"
+                           class="form-input w-full"
+                           placeholder="0" min="0" max="50" value="0">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="salary_min" class="block text-sm font-semibold text-gray-700 mb-2">Minimum Salary (Annual)</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
+                            <input type="number" id="salary_min" name="salary_min"
+                                   class="form-input w-full pl-8"
+                                   placeholder="50000">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="salary_max" class="block text-sm font-semibold text-gray-700 mb-2">Maximum Salary (Annual)</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
+                            <input type="number" id="salary_max" name="salary_max"
+                                   class="form-input w-full pl-8"
+                                   placeholder="80000">
+                        </div>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500">Leave salary fields empty if you prefer not to display compensation</p>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-between">
+            <a href="{{ url_for('employer.employer_jobs') }}" class="px-6 py-3 border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:border-gray-300 hover:bg-gray-50 transition">
+                Cancel
+            </a>
+            <button type="submit" class="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 transition shadow-lg shadow-indigo-500/25 flex items-center space-x-2">
+                <span>Post Job</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                </svg>
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

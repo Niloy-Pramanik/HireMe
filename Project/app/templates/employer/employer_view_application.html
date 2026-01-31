@@ -1,0 +1,410 @@
+{% extends 'base.html' %}
+
+{% block title %}Application Details{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+        <div>
+            <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-2">
+                <a href="{{ url_for('employer.employer_dashboard') }}" class="hover:text-indigo-600">Dashboard</a>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+                <a href="{{ url_for('employer.employer_applications') }}" class="hover:text-indigo-600">Applications</a>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+                <span class="text-gray-900 font-medium">Review</span>
+            </nav>
+            <h1 class="text-3xl font-bold text-gray-900">{{ user.first_name }} {{ user.last_name }}</h1>
+            <p class="mt-1 text-gray-600">Applied for {{ job.title }}</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <span class="px-4 py-2 rounded-full text-sm font-semibold
+                {% if application.application_status == 'applied' %}bg-blue-100 text-blue-700
+                {% elif application.application_status == 'under_review' %}bg-yellow-100 text-yellow-700
+                {% elif application.application_status == 'shortlisted' %}bg-green-100 text-green-700
+                {% elif application.application_status == 'rejected' %}bg-red-100 text-red-700
+                {% elif application.application_status == 'hired' %}bg-emerald-100 text-emerald-700
+                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                {{ application.application_status|replace('_', ' ')|title }}
+            </span>
+            <div class="text-2xl font-bold {% if match_score >= 80 %}text-green-600{% elif match_score >= 60 %}text-yellow-600{% else %}text-gray-600{% endif %}">
+                {{ match_score }}% Match
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Candidate Profile -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                    <h2 class="text-lg font-semibold text-gray-900">Candidate Profile</h2>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-start space-x-4 mb-6">
+                        <img src="{{ url_for('common.get_candidate_profile_picture', candidate_id=candidate.id) }}" 
+                             alt="{{ user.first_name }} {{ user.last_name }}" 
+                             class="w-20 h-20 rounded-2xl object-cover border-2 border-gray-200 shadow-md">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">{{ user.first_name }} {{ user.last_name }}</h3>
+                            <p class="text-gray-600">{{ candidate.current_position or 'No position specified' }}</p>
+                            <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                                <span class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                    </svg>
+                                    {{ user.email }}
+                                </span>
+                                {% if user.phone %}
+                                <span class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                    </svg>
+                                    {{ user.phone }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="p-4 bg-gray-50 rounded-xl">
+                            <div class="text-2xl font-bold text-gray-900">{{ candidate.experience_years or 0 }}</div>
+                            <div class="text-sm text-gray-500">Years Exp.</div>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-xl">
+                            <div class="text-lg font-bold text-gray-900">{{ candidate.education_level or 'N/A' }}</div>
+                            <div class="text-sm text-gray-500">Education</div>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-xl">
+                            <div class="text-lg font-bold text-gray-900">{{ candidate.location or 'N/A' }}</div>
+                            <div class="text-sm text-gray-500">Location</div>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-xl">
+                            {% if candidate.salary_expectation %}
+                            <div class="text-lg font-bold text-gray-900">${{ "{:,.0f}".format(candidate.salary_expectation) }}</div>
+                            {% else %}
+                            <div class="text-lg font-bold text-gray-900">N/A</div>
+                            {% endif %}
+                            <div class="text-sm text-gray-500">Expected Salary</div>
+                        </div>
+                    </div>
+
+                    {% if candidate.summary %}
+                    <div>
+                        <h4 class="font-semibold text-gray-700 mb-2">Professional Summary</h4>
+                        <p class="text-gray-600">{{ candidate.summary }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Skills Comparison -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                    <h2 class="text-lg font-semibold text-gray-900">Skills Analysis</h2>
+                </div>
+                <div class="p-6 space-y-6">
+                    <!-- Matched Skills (Green) -->
+                    <div>
+                        <h4 class="font-semibold text-green-700 mb-3 flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Matched Skills ({{ matched_skills|length }})
+                        </h4>
+                        <div class="flex flex-wrap gap-2">
+                            {% for cs, skill in matched_skills %}
+                            <span class="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium border-2 border-green-300">
+                                {{ skill.skill_name }}
+                                {% if cs.proficiency_level %}
+                                <span class="text-green-600 ml-1">({{ cs.proficiency_level }})</span>
+                                {% endif %}
+                            </span>
+                            {% else %}
+                            <span class="text-gray-500 text-sm">No matched skills</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Lacked Skills (Red) -->
+                    <div>
+                        <h4 class="font-semibold text-red-700 mb-3 flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            Missing Required Skills ({{ lacked_skills|length }})
+                        </h4>
+                        <div class="flex flex-wrap gap-2">
+                            {% for rs, skill in lacked_skills %}
+                            <span class="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-sm font-medium border-2 border-red-300">
+                                {{ skill.skill_name }}
+                                {% if rs.importance == 'required' %}<span class="text-red-500 ml-1">★</span>{% endif %}
+                            </span>
+                            {% else %}
+                            <span class="text-green-600 text-sm">All required skills matched! ✓</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Extra Skills (Yellow) -->
+                    <div>
+                        <h4 class="font-semibold text-yellow-700 mb-3 flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Additional Skills ({{ extra_skills|length }})
+                        </h4>
+                        <div class="flex flex-wrap gap-2">
+                            {% for cs, skill in extra_skills %}
+                            <span class="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-lg text-sm font-medium border-2 border-yellow-300">
+                                {{ skill.skill_name }}
+                                {% if cs.proficiency_level %}
+                                <span class="text-yellow-600 ml-1">({{ cs.proficiency_level }})</span>
+                                {% endif %}
+                            </span>
+                            {% else %}
+                            <span class="text-gray-500 text-sm">No additional skills</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cover Letter -->
+            {% if application.cover_letter %}
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                    <h2 class="text-lg font-semibold text-gray-900">Cover Letter</h2>
+                </div>
+                <div class="p-6">
+                    <p class="text-gray-600 whitespace-pre-line">{{ application.cover_letter }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Update Status -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                    <h3 class="font-semibold text-gray-900">Update Status</h3>
+                </div>
+                <form method="POST" action="{{ url_for('employer.update_application_status', application_id=application.id) }}" class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">New Status</label>
+                        <select name="status" class="form-input w-full">
+                            <option value="applied" {% if application.application_status == 'applied' %}selected{% endif %}>Applied</option>
+                            <option value="under_review" {% if application.application_status == 'under_review' %}selected{% endif %}>Under Review</option>
+                            <option value="shortlisted" {% if application.application_status == 'shortlisted' %}selected{% endif %}>Shortlisted</option>
+                            <option value="interview_scheduled" {% if application.application_status == 'interview_scheduled' %}selected{% endif %}>Interview Scheduled</option>
+                            <option value="rejected" {% if application.application_status == 'rejected' %}selected{% endif %}>Rejected</option>
+                            <option value="hired" {% if application.application_status == 'hired' %}selected{% endif %}>Hired</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Notes (Optional)</label>
+                        <textarea name="notes" rows="3" class="form-input w-full" placeholder="Add notes about this status change..."></textarea>
+                    </div>
+                    <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 transition">
+                        Update Status
+                    </button>
+                </form>
+            </div>
+
+            <!-- Exam Score -->
+            {% if application.exam_score is not none %}
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <h3 class="font-semibold text-gray-900 mb-4">Exam Results</h3>
+                <div class="text-center">
+                    <div class="text-4xl font-bold {% if application.exam_score >= 80 %}text-green-600{% elif application.exam_score >= 60 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                        {{ application.exam_score|int }}%
+                    </div>
+                    <div class="text-sm text-gray-500 mt-1">Exam Score</div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Status History -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                    <h3 class="font-semibold text-gray-900">Status History</h3>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        {% for history in status_history %}
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 mt-2 bg-indigo-600 rounded-full"></div>
+                            <div>
+                                <div class="font-medium text-gray-900">{{ history.new_status|replace('_', ' ')|title }}</div>
+                                {% if history.notes %}
+                                <p class="text-sm text-gray-600">{{ history.notes }}</p>
+                                {% endif %}
+                                <div class="text-xs text-gray-400 mt-1">{{ history.changed_at.strftime('%b %d, %Y at %I:%M %p') }}</div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-gray-500 text-sm">No status changes recorded</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-3">
+                <h3 class="font-semibold text-gray-900 mb-4">Actions</h3>
+                
+                <!-- Schedule Interview Button - Show for shortlisted candidates -->
+                {% if application.application_status in ['shortlisted', 'under_review'] %}
+                <a href="{{ url_for('employer.schedule_interview', application_id=application.id) }}" class="flex items-center p-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:opacity-90 transition">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <span class="font-medium">Schedule Interview</span>
+                </a>
+                {% elif application.application_status == 'interview_scheduled' %}
+                <div class="flex items-center p-3 rounded-xl bg-green-50 border border-green-200">
+                    <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="font-medium text-green-700">Interview Scheduled</span>
+                </div>
+                {% endif %}
+                
+                <!-- Interview Details (if scheduled) -->
+                {% if interview_room %}
+                <div class="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-xl">
+                    <h4 class="font-semibold text-purple-800 mb-2 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        Interview Details
+                    </h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-purple-600">Date:</span>
+                            <span class="font-medium text-purple-900">{{ interview_room.scheduled_time.strftime('%B %d, %Y') }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-purple-600">Time:</span>
+                            <span class="font-medium text-purple-900">{{ interview_room.scheduled_time.strftime('%I:%M %p') }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-purple-600">Duration:</span>
+                            <span class="font-medium text-purple-900">{{ interview_room.duration_minutes }} mins</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-purple-600">Status:</span>
+                            <span class="px-2 py-0.5 rounded text-xs font-semibold 
+                                {% if interview_room.status == 'scheduled' %}bg-yellow-100 text-yellow-700
+                                {% elif interview_room.status == 'active' %}bg-blue-100 text-blue-700
+                                {% elif interview_room.status == 'completed' %}bg-green-100 text-green-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ interview_room.status|title }}
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-purple-600">Room Code:</span>
+                            <span class="font-mono text-xs bg-purple-100 px-2 py-1 rounded text-purple-800">{{ interview_room.room_code }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Interview Feedback Section -->
+                {% if interview_feedbacks %}
+                <div class="mt-4 space-y-4">
+                    <h4 class="font-semibold text-gray-900 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                        Interviewer Feedback
+                    </h4>
+                    {% for feedback, interviewer in interview_feedbacks %}
+                    <div class="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                    {{ interviewer.first_name[0] }}
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-900 text-sm">{{ interviewer.first_name }} {{ interviewer.last_name }}</p>
+                                    <p class="text-xs text-gray-500">{{ feedback.created_at.strftime('%b %d, %Y') }}</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-sm font-semibold
+                                {% if feedback.recommendation == 'hire' %}bg-green-100 text-green-700
+                                {% elif feedback.recommendation == 'maybe' %}bg-yellow-100 text-yellow-700
+                                {% else %}bg-red-100 text-red-700{% endif %}">
+                                {% if feedback.recommendation == 'hire' %}✅ Recommend
+                                {% elif feedback.recommendation == 'maybe' %}⚠️ Maybe
+                                {% else %}❌ Not Recommended{% endif %}
+                            </span>
+                        </div>
+                        
+                        <!-- Scores -->
+                        <div class="grid grid-cols-3 gap-2 mb-3">
+                            <div class="text-center p-2 bg-gray-50 rounded-lg">
+                                <div class="text-xs text-gray-500">Technical</div>
+                                <div class="font-bold text-indigo-600">{{ feedback.technical_score or 'N/A' }}/10</div>
+                            </div>
+                            <div class="text-center p-2 bg-gray-50 rounded-lg">
+                                <div class="text-xs text-gray-500">Communication</div>
+                                <div class="font-bold text-indigo-600">{{ feedback.communication_score or 'N/A' }}/10</div>
+                            </div>
+                            <div class="text-center p-2 bg-gray-50 rounded-lg">
+                                <div class="text-xs text-gray-500">Problem Solving</div>
+                                <div class="font-bold text-indigo-600">{{ feedback.problem_solving_score or 'N/A' }}/10</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Overall Rating -->
+                        <div class="mb-3">
+                            <span class="text-xs text-gray-500">Overall Rating:</span>
+                            <span class="ml-2 text-sm font-semibold 
+                                {% if feedback.overall_rating == 'excellent' %}text-green-600
+                                {% elif feedback.overall_rating == 'good' %}text-blue-600
+                                {% elif feedback.overall_rating == 'average' %}text-yellow-600
+                                {% else %}text-red-600{% endif %}">
+                                {{ feedback.overall_rating|title if feedback.overall_rating else 'N/A' }}
+                            </span>
+                        </div>
+                        
+                        <!-- Feedback Text -->
+                        {% if feedback.feedback_text %}
+                        <div class="mt-3 p-3 bg-gray-50 rounded-lg">
+                            <p class="text-xs text-gray-500 mb-1">Detailed Feedback:</p>
+                            <p class="text-sm text-gray-700 whitespace-pre-line">{{ feedback.feedback_text }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% if candidate.cv_content and candidate.cv_filename %}
+                <a href="{{ url_for('employer.download_cv', candidate_id=candidate.id) }}" target="_blank" download="{{ candidate.cv_filename }}" class="flex items-center p-3 rounded-xl hover:bg-gray-50 transition border border-gray-200">
+                    <svg class="w-5 h-5 text-indigo-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <span class="font-medium text-gray-700">Download Resume ({{ candidate.cv_filename }})</span>
+                </a>
+                {% else %}
+                <div class="flex items-center p-3 rounded-xl bg-gray-50 border border-gray-200">
+                    <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <span class="font-medium text-gray-400">No Resume Uploaded</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

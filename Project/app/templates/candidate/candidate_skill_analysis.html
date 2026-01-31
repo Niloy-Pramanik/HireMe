@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}Skill Analysis{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div>
+            <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-2">
+                <a href="{{ url_for('candidate.candidate_dashboard') }}" class="hover:text-indigo-600">Dashboard</a>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+                <span class="text-gray-900 font-medium">Skill Analysis</span>
+            </nav>
+            <h1 class="text-3xl font-bold text-gray-900">Skill Gap Analysis</h1>
+            <p class="mt-1 text-gray-600">See how your skills match up with top job opportunities</p>
+        </div>
+        <a href="{{ url_for('candidate.candidate_profile') }}" class="mt-4 md:mt-0 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:opacity-90 transition flex items-center space-x-2 w-fit">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            <span>Add Skills</span>
+        </a>
+    </div>
+
+    <!-- Your Skills -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-purple-50">
+            <h2 class="text-lg font-bold text-gray-900 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+                Your Skills ({{ candidate_skills|length }})
+            </h2>
+        </div>
+        <div class="p-6">
+            {% if candidate_skills %}
+            <div class="flex flex-wrap gap-3">
+                {% for cs, skill in candidate_skills %}
+                <div class="px-4 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl">
+                    <span class="font-medium text-indigo-700">{{ skill.skill_name }}</span>
+                    <span class="text-indigo-500 text-sm ml-1">({{ cs.proficiency_level }})</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+                <p class="text-gray-500">No skills added yet. Add skills to see your analysis.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Job Analysis -->
+    {% if skill_gap_analysis %}
+    <div class="space-y-6">
+        <h2 class="text-xl font-bold text-gray-900">Top Job Matches & Skill Gaps</h2>
+        
+        {% for analysis in skill_gap_analysis %}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                    <!-- Job Info -->
+                    <div class="flex items-start space-x-4">
+                        <div class="w-14 h-14 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <span class="text-xl font-bold text-gray-600">{{ analysis.company.company_name[0] }}</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900">
+                                <a href="{{ url_for('job.job_details', job_id=analysis.job.id) }}" class="hover:text-indigo-600 transition">
+                                    {{ analysis.job.title }}
+                                </a>
+                            </h3>
+                            <p class="text-gray-600">{{ analysis.company.company_name }}</p>
+                            <div class="flex items-center space-x-3 mt-2 text-sm text-gray-500">
+                                <span>{{ analysis.job.location or 'Remote' }}</span>
+                                <span>•</span>
+                                <span>{{ analysis.job.job_type }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Match Score -->
+                    <div class="flex items-center space-x-4">
+                        <div class="text-right">
+                            <div class="text-3xl font-bold {% if analysis.match_score >= 80 %}text-green-600{% elif analysis.match_score >= 60 %}text-yellow-600{% else %}text-gray-600{% endif %}">
+                                {{ analysis.match_score }}%
+                            </div>
+                            <div class="text-sm text-gray-500">Match Score</div>
+                        </div>
+                        <a href="{{ url_for('job.apply_job', job_id=analysis.job.id) }}" 
+                           class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 transition">
+                            Apply
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Skills Breakdown -->
+                <div class="mt-6 pt-6 border-t border-gray-100">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Matching Skills -->
+                        <div>
+                            <h4 class="font-semibold text-green-700 mb-3 flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Matching Skills ({{ analysis.matching_skills|length }})
+                            </h4>
+                            {% if analysis.matching_skills %}
+                            <div class="flex flex-wrap gap-2">
+                                {% for item in analysis.matching_skills %}
+                                <span class="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
+                                    {{ item.skill.skill_name }}
+                                    {% if item.importance == 'required' %}
+                                    <span class="text-green-500 ml-1">★</span>
+                                    {% endif %}
+                                </span>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-gray-500 text-sm">No matching skills</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Missing Skills -->
+                        <div>
+                            <h4 class="font-semibold text-orange-700 mb-3 flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
+                                Skills to Learn ({{ analysis.missing_skills|length }})
+                            </h4>
+                            {% if analysis.missing_skills %}
+                            <div class="flex flex-wrap gap-2">
+                                {% for item in analysis.missing_skills %}
+                                <span class="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg text-sm font-medium">
+                                    {{ item.skill.skill_name }}
+                                    {% if item.importance == 'required' %}
+                                    <span class="text-orange-500 ml-1">★ Required</span>
+                                    {% endif %}
+                                </span>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-green-600 text-sm font-medium">✓ You have all required skills!</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+        <div class="w-20 h-20 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full mx-auto mb-6 flex items-center justify-center">
+            <svg class="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">No analysis available</h3>
+        <p class="text-gray-600 mb-6 max-w-md mx-auto">Add skills to your profile to see how you match with available jobs</p>
+        <a href="{{ url_for('candidate.candidate_profile') }}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:opacity-90 transition">
+            Add Your Skills
+            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+            </svg>
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

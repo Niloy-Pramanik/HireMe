@@ -24,7 +24,7 @@
             <p class="mt-2 text-gray-600">Manage your company information. A complete profile helps attract better candidates.</p>
         </div>
 
-         <!-- Profile Completion Card -->
+        <!-- Profile Completion Card -->
         {% set completion = 0 %}
         {% if company.company_name %}{% set completion = completion + 20 %}{% endif %}
         {% if company.industry %}{% set completion = completion + 15 %}{% endif %}
@@ -55,7 +55,7 @@
         <!-- Company Profile Form -->
         <div class="bg-white rounded-xl shadow-lg overflow-hidden">
             <form method="POST" enctype="multipart/form-data" class="divide-y divide-gray-200">
-                                <!-- Company Logo Section -->
+                <!-- Company Logo Section -->
                 <div class="p-6">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4">
                         <i class="fas fa-image text-indigo-500 mr-2"></i>Company Logo
@@ -86,7 +86,7 @@
                     </div>
                 </div>
 
-                 <!-- Basic Information -->
+                <!-- Basic Information -->
                 <div class="p-6">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4">
                         <i class="fas fa-info-circle text-indigo-500 mr-2"></i>Basic Information
@@ -163,7 +163,7 @@
                     </div>
                 </div>
 
-                                <!-- Submit Button -->
+                <!-- Submit Button -->
                 <div class="px-6 py-4 bg-gray-50 flex items-center justify-between">
                     <a href="{{ url_for('employer.employer_dashboard') }}" 
                        class="text-gray-600 hover:text-gray-800 font-medium">
@@ -238,10 +238,3 @@ function previewLogo(input) {
 }
 </script>
 {% endblock %}
-
-
-
-
-
-
-
