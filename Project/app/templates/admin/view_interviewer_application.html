@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+
+{% block title %}Application #{{ application.id }} - Admin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Back Button -->
+        <div class="mb-6">
+            <a href="{{ url_for('admin.interviewer_applications') }}" class="inline-flex items-center text-indigo-600 hover:text-indigo-700">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Back to Applications
+            </a>
+        </div>
+        
+        <!-- Header -->
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
+            <div class="px-8 py-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h1 class="text-2xl font-bold">{{ application.first_name }} {{ application.last_name }}</h1>
+                        <p class="text-indigo-100 mt-1">{{ application.headline or 'Expert Interviewer Application' }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm text-indigo-200">Application #{{ application.id }}</p>
+                        {% if application.status == 'pending' %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-400 text-yellow-900 mt-2">
+                            Pending Review
+                        </span>
+                        {% elif application.status == 'under_review' %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-400 text-blue-900 mt-2">
+                            Under Review
+                        </span>
+                        {% elif application.status == 'approved' %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-400 text-green-900 mt-2">
+                            Approved
+                        </span>
+                        {% elif application.status == 'rejected' %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-400 text-red-900 mt-2">
+                            Rejected
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid lg:grid-cols-3 gap-6">
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Contact Information -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Contact Information</h2>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Email</p>
+                            <p class="font-medium text-gray-900">{{ application.email }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Phone</p>
+                            <p class="font-medium text-gray-900">{{ application.phone or 'Not provided' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">LinkedIn</p>
+                            {% if application.linkedin_url %}
+                            <a href="{{ application.linkedin_url }}" target="_blank" class="text-indigo-600 hover:text-indigo-700">View Profile</a>
+                            {% else %}
+                            <p class="text-gray-500">Not provided</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Applied</p>
+                            <p class="font-medium text-gray-900">{{ application.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Professional Information -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Professional Information</h2>
+                    <div class="space-y-4">
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm text-gray-500">Years of Experience</p>
+                                <p class="font-medium text-gray-900">{{ application.experience_years }} years</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Hourly Rate</p>
+                                <p class="font-medium text-gray-900">${{ application.hourly_rate }} {{ application.currency }}</p>
+                            </div>
+                        </div>
+                        
+                        {% if application.bio %}
+                        <div>
+                            <p class="text-sm text-gray-500 mb-2">Bio / About</p>
+                            <p class="text-gray-700 bg-gray-50 p-4 rounded-lg">{{ application.bio }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Skills -->
+                {% if skills_data %}
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Technical Skills</h2>
+                    <div class="flex flex-wrap gap-2">
+                        {% for skill in skills_data %}
+                        <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
+                            {{ skill.name }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Industries -->
+                {% if industries_data %}
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Industries</h2>
+                    <div class="flex flex-wrap gap-2">
+                        {% for industry in industries_data %}
+                        <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                            {{ industry }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Certifications -->
+                {% if certifications_data %}
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Certifications</h2>
+                    <div class="space-y-3">
+                        {% for cert in certifications_data %}
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <p class="font-medium text-gray-900">{{ cert.name }}</p>
+                                <p class="text-sm text-gray-500">{{ cert.organization }}</p>
+                            </div>
+                            {% if cert.url %}
+                            <a href="{{ cert.url }}" target="_blank" class="text-indigo-600 hover:text-indigo-700 text-sm">
+                                Verify →
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Documents -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Documents</h2>
+                    <div class="space-y-3">
+                        {% if application.cv_filename %}
+                        <button onclick="downloadFile('{{ url_for('admin.download_application_cv', app_id=application.id) }}', '{{ application.cv_filename }}')"
+                           class="w-full flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition cursor-pointer">
+                            <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0 text-left">
+                                <p class="text-sm font-medium text-gray-900">CV / Resume</p>
+                                <p class="text-xs text-gray-500 truncate">{{ application.cv_filename }}</p>
+                            </div>
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                        </button>
+                        {% endif %}
+                        
+                        {% if application.experience_proof_filename %}
+                        <button onclick="downloadFile('{{ url_for('admin.download_application_exp_proof', app_id=application.id) }}', '{{ application.experience_proof_filename }}')"
+                           class="w-full flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition cursor-pointer">
+                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0 text-left">
+                                <p class="text-sm font-medium text-gray-900">Experience Proof</p>
+                                <p class="text-xs text-gray-500 truncate">{{ application.experience_proof_filename }}</p>
+                            </div>
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                        </button>
+                        {% else %}
+                        <div class="p-3 bg-gray-50 rounded-lg text-gray-500 text-sm">
+                            No experience proof uploaded
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                {% if application.status in ['pending', 'under_review'] %}
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Actions</h2>
+                    <div class="space-y-3">
+                        {% if application.status == 'pending' %}
+                        <form action="{{ url_for('admin.review_interviewer_application', app_id=application.id) }}" method="POST">
+                            <button type="submit" 
+                                    class="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition">
+                                Mark as Under Review
+                            </button>
+                        </form>
+                        {% endif %}
+                        
+                        <form action="{{ url_for('admin.approve_interviewer_application', app_id=application.id) }}" method="POST">
+                            <button type="submit" 
+                                    class="w-full px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition">
+                                ✓ Approve Application
+                            </button>
+                        </form>
+                        
+                        <button type="button" onclick="showRejectModal()" 
+                                class="w-full px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition">
+                            ✕ Reject Application
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if application.status == 'approved' and application.created_user_id %}
+                <div class="bg-green-50 rounded-xl p-6">
+                    <h2 class="text-lg font-semibold text-green-800 mb-2">Application Approved</h2>
+                    <p class="text-sm text-green-700 mb-3">User account has been created.</p>
+                    <p class="text-xs text-green-600">User ID: {{ application.created_user_id }}</p>
+                </div>
+                {% endif %}
+                
+                {% if application.status == 'rejected' %}
+                <div class="bg-red-50 rounded-xl p-6">
+                    <h2 class="text-lg font-semibold text-red-800 mb-2">Application Rejected</h2>
+                    {% if application.rejection_reason %}
+                    <p class="text-sm text-red-700">{{ application.rejection_reason }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div id="rejectModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Reject Application</h3>
+        <form action="{{ url_for('admin.reject_interviewer_application', app_id=application.id) }}" method="POST">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Rejection Reason</label>
+                <textarea name="rejection_reason" rows="4" 
+                          class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                          placeholder="Please provide a reason for rejection..."></textarea>
+            </div>
+            <div class="flex space-x-3">
+                <button type="button" onclick="hideRejectModal()" 
+                        class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                    Confirm Rejection
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function showRejectModal() {
+    document.getElementById('rejectModal').classList.remove('hidden');
+    document.getElementById('rejectModal').classList.add('flex');
+}
+
+function hideRejectModal() {
+    document.getElementById('rejectModal').classList.add('hidden');
+    document.getElementById('rejectModal').classList.remove('flex');
+}
+
+function downloadFile(url, filename) {
+    fetch(url)
+        .then(response => response.blob())
+        .then(blob => {
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(link.href);
+        })
+        .catch(err => {
+            console.error('Download failed:', err);
+            alert('Failed to download file. Please try again.');
+        });
+}
+</script>
+{% endblock %}

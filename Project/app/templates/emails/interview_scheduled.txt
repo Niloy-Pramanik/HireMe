@@ -1,0 +1,31 @@
+Hello {{ candidate_name }},
+
+Congratulations! You have been shortlisted! 🎉
+
+We are pleased to inform you that you have been selected for an interview for the position of {{ job_title }} at {{ company_name }}.
+
+INTERVIEW DETAILS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Date: {{ interview_date }}
+Time: {{ interview_time }}
+Duration: {{ interview_duration }} minutes
+Room Code: {{ room_code }}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+How to Join:
+1. Log in to your candidate dashboard
+2. Navigate to "My Interviews" section
+3. Click "Join Interview" at the scheduled time
+4. Use Room Code: {{ room_code }} if needed
+
+Important Notes:
+- Please join 5 minutes before the scheduled time
+- Ensure you have a stable internet connection
+- Test your camera and microphone beforehand
+- Keep the room code handy
+
+We look forward to speaking with you!
+
+Best regards,
+HireMe Team
+{{ company_name }}

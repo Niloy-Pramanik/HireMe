@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Users - Admin{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Manage Users</h1>
+            <p class="mt-1 text-gray-600">{{ total_users or 0 }} total users</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button type="button" class="px-4 py-2 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition">
+                Export CSV
+            </button>
+            <button type="button" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 transition shadow-lg">
+                Add User
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <form method="GET" action="{{ url_for('admin.admin_users') }}" class="flex flex-wrap items-end gap-4">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Search</label>
+                <input type="text" name="q" value="{{ request.args.get('q', '') }}"
+                    class="form-input w-full" placeholder="Name or email...">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">User Type</label>
+                <select name="user_type" class="form-input">
+                    <option value="">All Types</option>
+                    <option value="candidate" {% if request.args.get('user_type') == 'candidate' %}selected{% endif %}>Candidate</option>
+                    <option value="employer" {% if request.args.get('user_type') == 'employer' %}selected{% endif %}>Employer</option>
+                    <option value="admin" {% if request.args.get('user_type') == 'admin' %}selected{% endif %}>Admin</option>
+                    <option value="interviewer" {% if request.args.get('user_type') == 'interviewer' %}selected{% endif %}>Interviewer</option>
+                    <option value="manager" {% if request.args.get('user_type') == 'manager' %}selected{% endif %}>Manager</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                <select name="status" class="form-input">
+                    <option value="">All Status</option>
+                    <option value="active" {% if request.args.get('status') == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if request.args.get('status') == 'inactive' %}selected{% endif %}>Inactive</option>
+                    <option value="suspended" {% if request.args.get('status') == 'suspended' %}selected{% endif %}>Suspended</option>
+                </select>
+            </div>
+            <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition">
+                Search
+            </button>
+            <a href="{{ url_for('admin.admin_users') }}" class="px-5 py-2.5 text-gray-600 font-semibold hover:text-gray-900 transition">
+                Clear
+            </a>
+        </form>
+    </div>
+
+    <!-- Users Table -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-100">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Registered</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Active</th>
+                        <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for user in users %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold">
+                                    {{ user.first_name[0] }}
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-gray-900">{{ user.first_name }} {{ user.last_name }}</div>
+                                    <div class="text-sm text-gray-500">{{ user.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold
+                                {% if user.user_type == 'admin' %}bg-red-100 text-red-700
+                                {% elif user.user_type == 'employer' %}bg-purple-100 text-purple-700
+                                {% elif user.user_type == 'interviewer' %}bg-green-100 text-green-700
+                                {% elif user.user_type == 'manager' %}bg-yellow-100 text-yellow-700
+                                {% else %}bg-blue-100 text-blue-700{% endif %}">
+                                {{ user.user_type|title }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold
+                                {% if user.is_active %}bg-green-100 text-green-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ 'Active' if user.is_active else 'Inactive' }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600">
+                            {{ user.created_at.strftime('%b %d, %Y') }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600">
+                            {{ user.last_login.strftime('%b %d, %Y') if user.last_login else 'Never' }}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end space-x-2">
+                                <a href="#" class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="View User">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                </a>
+                                <a href="#" class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Edit User">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </a>
+                                {% if user.is_active %}
+                                <form method="POST" action="#" class="inline">
+                                    <button type="submit" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                                        onclick="return confirm('Are you sure you want to suspend this user?')">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                                        </svg>
+                                    </button>
+                                </form>
+                                {% else %}
+                                <form method="POST" action="#" class="inline">
+                                    <button type="submit" class="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                            No users found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination %}
+        <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+            <div class="text-sm text-gray-600">
+                Showing {{ pagination.page * pagination.per_page - pagination.per_page + 1 }} to {{ [pagination.page * pagination.per_page, pagination.total]|min }} of {{ pagination.total }} users
+            </div>
+            <div class="flex items-center space-x-2">
+                {% if pagination.has_prev %}
+                <a href="{{ url_for('admin.admin_users', page=pagination.prev_num, **request.args) }}" 
+                    class="px-3 py-1.5 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition">
+                    Previous
+                </a>
+                {% endif %}
+                {% if pagination.has_next %}
+                <a href="{{ url_for('admin.admin_users', page=pagination.next_num, **request.args) }}"
+                    class="px-3 py-1.5 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition">
+                    Next
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
