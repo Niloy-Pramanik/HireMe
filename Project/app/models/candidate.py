@@ -5,6 +5,8 @@ class CandidateProfile(db.Model):
     __tablename__ = 'candidate_profiles'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    profile_picture = db.Column(db.LargeBinary, nullable=False)  # Store image binary data
+    profile_picture_mimetype = db.Column(db.String(50), nullable=False, default='image/svg+xml')  # Store MIME type
     experience_years = db.Column(db.Integer, default=0)
     education_level = db.Column(db.Enum('High School', 'Bachelor', 'Master', 'PhD', 'Other'))
     current_position = db.Column(db.String(255))
