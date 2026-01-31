@@ -68,6 +68,9 @@
         /* HTMX Indicator */
         .htmx-indicator { opacity: 0;transition: opacity 200ms ease-in; }
         .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { opacity: 1; }
+        
+        /* Alpine.js Cloak */
+        [x-cloak] { display: none !important; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col" hx-boost="true">
@@ -106,6 +109,7 @@
                             <a href="{{ url_for('employer.employer_dashboard') }}" class="text-sm font-medium text-white/90 hover:text-white transition">Dashboard</a>
                             <a href="{{ url_for('employer.employer_jobs') }}" class="text-sm font-medium text-white/90 hover:text-white transition">My Jobs</a>
                             <a href="{{ url_for('employer.employer_applications') }}" class="text-sm font-medium text-white/90 hover:text-white transition">Applications</a>
+                            <a href="{{ url_for('employer.employer_interviewers') }}" class="text-sm font-medium text-white/90 hover:text-white transition">Interviewers</a>
                             <a href="{{ url_for('employer.create_job') }}" class="text-sm font-medium text-white/90 hover:text-white transition">Post Job</a>
                         {% elif session.get('user_type') == 'admin' %}
                             <a href="{{ url_for('admin.admin_dashboard') }}" class="text-sm font-medium text-white/90 hover:text-white transition">Dashboard</a>
@@ -346,7 +350,17 @@
     <script>
         document.addEventListener('alpine:init', () => {
             // Global Alpine logic can go here
-        })
+        });
+        
+        // Force full page reload for interview room pages
+        document.body.addEventListener('htmx:beforeRequest', function(evt) {
+            var path = evt.detail.pathInfo.requestPath;
+            // Check if navigating to interview room
+            if (path && (path.includes('/interview/room/') || path.includes('/interview/join/'))) {
+                evt.preventDefault();
+                window.location.href = path;
+            }
+        });
     </script>
 </body>
 </html>
