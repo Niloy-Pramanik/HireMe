@@ -1,0 +1,493 @@
+{% extends 'base.html' %}
+
+{% block title %}Browse Jobs - HireMe{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+    <!-- Hero Header - Compact -->
+    <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 rounded-2xl p-5 md:p-6 text-white relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/10"></div>
+        <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        
+        <div class="relative z-10">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold">Find Your Dream Job</h1>
+                    <p class="text-indigo-100 text-sm">{{ total_jobs or 0 }} opportunities waiting for you</p>
+                </div>
+                
+                <!-- Quick Search Bar -->
+                <form method="GET" action="{{ url_for('job.browse_jobs') }}" class="flex flex-col md:flex-row gap-2 flex-1 md:max-w-2xl">
+                    <div class="flex-1 relative">
+                        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input type="text" name="q" value="{{ request.args.get('q', '') }}"
+                            class="w-full pl-9 pr-3 py-2.5 rounded-lg bg-white/95 backdrop-blur text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-md text-sm"
+                            placeholder="Job title, keywords...">
+                    </div>
+                    <div class="flex-1 md:flex-initial md:w-48 relative">
+                        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        </svg>
+                        <input type="text" name="location" value="{{ request.args.get('location', '') }}"
+                            class="w-full pl-9 pr-3 py-2.5 rounded-lg bg-white/95 backdrop-blur text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-md text-sm"
+                            placeholder="City">
+                    </div>
+                    <button type="submit" class="px-5 py-2.5 bg-white text-indigo-600 font-semibold rounded-lg hover:bg-gray-100 transition shadow-md flex items-center justify-center text-sm">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        Search
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+        <form method="GET" action="{{ url_for('job.browse_jobs') }}" id="filterForm">
+            <!-- Preserve search params -->
+            <input type="hidden" name="q" value="{{ request.args.get('q', '') }}">
+            <input type="hidden" name="location" value="{{ request.args.get('location', '') }}">
+            
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Job Type Dropdown -->
+                <div class="relative" x-data="{ open: false }">
+                    <button type="button" @click="open = !open" 
+                        class="flex items-center px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 transition">
+                        <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        Job Type
+                        {% if request.args.getlist('job_type') %}
+                        <span class="ml-2 px-1.5 py-0.5 bg-indigo-100 text-indigo-700 text-xs rounded-full">{{ request.args.getlist('job_type')|length }}</span>
+                        {% endif %}
+                        <svg class="w-4 h-4 ml-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div x-show="open" @click.away="open = false" x-transition
+                        class="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
+                        {% for jt in ['full-time', 'part-time', 'contract', 'internship'] %}
+                        <label class="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                            <input type="checkbox" name="job_type" value="{{ jt }}"
+                                {% if jt in request.args.getlist('job_type') %}checked{% endif %}
+                                class="h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                                onchange="document.getElementById('filterForm').submit()">
+                            <span class="ml-3 text-gray-700 capitalize">{{ jt|replace('-', ' ') }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Work Mode Dropdown -->
+                <div class="relative" x-data="{ open: false }">
+                    <button type="button" @click="open = !open" 
+                        class="flex items-center px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 transition">
+                        <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        Work Mode
+                        {% if request.args.get('work_mode') %}
+                        <span class="ml-2 px-1.5 py-0.5 bg-teal-100 text-teal-700 text-xs rounded-full">1</span>
+                        {% endif %}
+                        <svg class="w-4 h-4 ml-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div x-show="open" @click.away="open = false" x-transition
+                        class="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
+                        <label class="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="work_mode" value=""
+                                {% if not request.args.get('work_mode') %}checked{% endif %}
+                                class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                onchange="document.getElementById('filterForm').submit()">
+                            <span class="ml-3 text-gray-700">Any Mode</span>
+                        </label>
+                        <label class="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="work_mode" value="remote"
+                                {% if request.args.get('work_mode') == 'remote' %}checked{% endif %}
+                                class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                onchange="document.getElementById('filterForm').submit()">
+                            <span class="ml-3 text-gray-700">🏠 Remote</span>
+                        </label>
+                        <label class="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="work_mode" value="onsite"
+                                {% if request.args.get('work_mode') == 'onsite' %}checked{% endif %}
+                                class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                onchange="document.getElementById('filterForm').submit()">
+                            <span class="ml-3 text-gray-700">🏢 Onsite</span>
+                        </label>
+                        <label class="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="work_mode" value="hybrid"
+                                {% if request.args.get('work_mode') == 'hybrid' %}checked{% endif %}
+                                class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                onchange="document.getElementById('filterForm').submit()">
+                            <span class="ml-3 text-gray-700">🔄 Hybrid</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Experience Dropdown -->
+                <div class="relative" x-data="{ open: false }">
+                    <button type="button" @click="open = !open" 
+                        class="flex items-center px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 transition">
+                        <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                        </svg>
+                        Experience
+                        {% if request.args.get('experience') %}
+                        <span class="ml-2 px-1.5 py-0.5 bg-indigo-100 text-indigo-700 text-xs rounded-full">1</span>
+                        {% endif %}
+                        <svg class="w-4 h-4 ml-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div x-show="open" @click.away="open = false" x-transition
+                        class="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
+                        <label class="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="experience" value=""
+                                {% if not request.args.get('experience') %}checked{% endif %}
+                                class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                onchange="document.getElementById('filterForm').submit()">
+                            <span class="ml-3 text-gray-700">Any Experience</span>
+                        </label>
+                        <label class="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="experience" value="entry"
+                                {% if request.args.get('experience') == 'entry' %}checked{% endif %}
+                                class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                onchange="document.getElementById('filterForm').submit()">
+                            <span class="ml-3 text-gray-700">Entry Level (0-2 years)</span>
+                        </label>
+                        <label class="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="experience" value="mid"
+                                {% if request.args.get('experience') == 'mid' %}checked{% endif %}
+                                class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                onchange="document.getElementById('filterForm').submit()">
+                            <span class="ml-3 text-gray-700">Mid Level (2-5 years)</span>
+                        </label>
+                        <label class="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="experience" value="senior"
+                                {% if request.args.get('experience') == 'senior' %}checked{% endif %}
+                                class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                onchange="document.getElementById('filterForm').submit()">
+                            <span class="ml-3 text-gray-700">Senior (5+ years)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Salary Dropdown -->
+                <div class="relative" x-data="{ open: false }">
+                    <button type="button" @click="open = !open" 
+                        class="flex items-center px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 transition">
+                        <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Salary
+                        {% if request.args.get('min_salary') %}
+                        <span class="ml-2 px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">${{ "{:,}".format(request.args.get('min_salary')|int) }}+</span>
+                        {% endif %}
+                        <svg class="w-4 h-4 ml-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div x-show="open" @click.away="open = false" x-transition
+                        class="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
+                        {% for sal in [('', 'Any Salary'), ('30000', '$30,000+'), ('50000', '$50,000+'), ('75000', '$75,000+'), ('100000', '$100,000+'), ('150000', '$150,000+')] %}
+                        <label class="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="min_salary" value="{{ sal[0] }}"
+                                {% if request.args.get('min_salary', '') == sal[0] %}checked{% endif %}
+                                class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                onchange="document.getElementById('filterForm').submit()">
+                            <span class="ml-3 text-gray-700">{{ sal[1] }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Skills Dropdown -->
+                <div class="relative" x-data="{ open: false }">
+                    <button type="button" @click="open = !open" 
+                        class="flex items-center px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 transition">
+                        <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                        Skills
+                        {% if request.args.get('skill') %}
+                        <span class="ml-2 px-1.5 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">1</span>
+                        {% endif %}
+                        <svg class="w-4 h-4 ml-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div x-show="open" @click.away="open = false" x-transition
+                        class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 max-h-72 overflow-y-auto">
+                        <label class="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="skill" value=""
+                                {% if not request.args.get('skill') %}checked{% endif %}
+                                class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                onchange="document.getElementById('filterForm').submit()">
+                            <span class="ml-3 text-gray-700">Any Skill</span>
+                        </label>
+                        {% for skill in skills %}
+                        <label class="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="skill" value="{{ skill.id }}"
+                                {% if request.args.get('skill')|int == skill.id %}checked{% endif %}
+                                class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                onchange="document.getElementById('filterForm').submit()">
+                            <span class="ml-3 text-gray-700">{{ skill.skill_name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Spacer -->
+                <div class="flex-1"></div>
+
+                <!-- Sort -->
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-500">Sort:</span>
+                    <select name="sort" class="form-select py-2 pl-3 pr-8 text-sm border-gray-200 rounded-xl bg-gray-50 focus:bg-white"
+                            onchange="document.getElementById('filterForm').submit()">
+                        <option value="newest" {% if request.args.get('sort', 'newest') == 'newest' %}selected{% endif %}>Newest</option>
+                        <option value="salary_high" {% if request.args.get('sort') == 'salary_high' %}selected{% endif %}>Highest Salary</option>
+                        <option value="salary_low" {% if request.args.get('sort') == 'salary_low' %}selected{% endif %}>Lowest Salary</option>
+                    </select>
+                </div>
+
+                <!-- Clear Filters -->
+                {% if request.args.get('job_type') or request.args.get('experience') or request.args.get('min_salary') or request.args.get('skill') or request.args.get('work_mode') %}
+                <a href="{{ url_for('job.browse_jobs', q=request.args.get('q', ''), location=request.args.get('location', '')) }}" 
+                   class="flex items-center px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-xl text-sm font-medium transition">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Clear Filters
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Active Filters Tags -->
+    {% if request.args.getlist('job_type') or request.args.get('experience') or request.args.get('min_salary') or request.args.get('skill') or request.args.get('q') or request.args.get('location') or request.args.get('work_mode') %}
+    <div class="flex flex-wrap items-center gap-2">
+        <span class="text-sm text-gray-500">Active filters:</span>
+        {% if request.args.get('q') %}
+        <span class="inline-flex items-center px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">
+            Search: "{{ request.args.get('q') }}"
+        </span>
+        {% endif %}
+        {% if request.args.get('location') %}
+        <span class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+            📍 {{ request.args.get('location') }}
+        </span>
+        {% endif %}
+        {% if request.args.get('work_mode') %}
+        <span class="inline-flex items-center px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm capitalize">
+            {% if request.args.get('work_mode') == 'remote' %}🏠{% elif request.args.get('work_mode') == 'onsite' %}🏢{% else %}🔄{% endif %} {{ request.args.get('work_mode') }}
+        </span>
+        {% endif %}
+        {% for jt in request.args.getlist('job_type') %}
+        <span class="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm capitalize">
+            {{ jt|replace('-', ' ') }}
+        </span>
+        {% endfor %}
+        {% if request.args.get('experience') %}
+        <span class="inline-flex items-center px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm capitalize">
+            {{ request.args.get('experience') }} level
+        </span>
+        {% endif %}
+        {% if request.args.get('min_salary') %}
+        <span class="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+            ${{ "{:,}".format(request.args.get('min_salary')|int) }}+
+        </span>
+        {% endif %}
+        {% if request.args.get('skill') %}
+        {% set selected_skill = skills|selectattr('id', 'equalto', request.args.get('skill')|int)|first %}
+        {% if selected_skill %}
+        <span class="inline-flex items-center px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm">
+            {{ selected_skill.skill_name }}
+        </span>
+        {% endif %}
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Results Header -->
+    <div class="flex items-center justify-between">
+        <p class="text-gray-600">
+            Found <span class="font-bold text-gray-900">{{ jobs.total }}</span> jobs
+            {% if request.args.get('q') %}matching "{{ request.args.get('q') }}"{% endif %}
+        </p>
+        {% if session.get('user_id') and session.get('user_type') == 'candidate' %}
+        <a href="{{ url_for('candidate.candidate_recommendations') }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 transition text-sm">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+            Smart Match
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Job Cards Grid -->
+    {% if jobs.items %}
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {% for job, company in jobs.items %}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:border-indigo-200 transition-all duration-300 overflow-hidden group">
+            <!-- Card Header -->
+            <div class="p-6 pb-4">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center overflow-hidden shadow-lg">
+                        {% if company.logo %}
+                        <img src="{{ url_for('employer.get_company_logo', company_id=company.id) }}" alt="{{ company.company_name }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <span class="text-white font-bold text-xl">{{ company.company_name[0] }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="text-xs text-gray-400">{{ job.created_at.strftime('%b %d') }}</span>
+                </div>
+                
+                <a href="{{ url_for('job.job_details', job_id=job.id) }}" class="block">
+                    <h3 class="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition line-clamp-2 mb-1">
+                        {{ job.title }}
+                    </h3>
+                </a>
+                <p class="text-gray-600 text-sm">{{ company.company_name }}</p>
+                {% if company.industry %}
+                <p class="text-gray-400 text-xs mt-0.5">{{ company.industry }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Card Body -->
+            <div class="px-6 pb-4 space-y-3">
+                <!-- Location & Type -->
+                <div class="flex flex-wrap items-center gap-2 text-sm">
+                    <span class="inline-flex items-center px-2.5 py-1 bg-gray-100 text-gray-700 rounded-lg">
+                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        {{ job.location or 'Remote' }}
+                    </span>
+                    <span class="inline-flex items-center px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg capitalize">
+                        {{ job.job_type|replace('_', ' ')|replace('-', ' ') }}
+                    </span>
+                </div>
+
+                <!-- Salary -->
+                {% if job.salary_min or job.salary_max %}
+                <div class="flex items-center text-green-600 font-semibold">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    {% if job.salary_min and job.salary_max %}
+                        ${{ "{:,.0f}".format(job.salary_min) }} - ${{ "{:,.0f}".format(job.salary_max) }}
+                    {% elif job.salary_min %}
+                        From ${{ "{:,.0f}".format(job.salary_min) }}
+                    {% else %}
+                        Up to ${{ "{:,.0f}".format(job.salary_max) }}
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Description -->
+                {% if job.description %}
+                <p class="text-gray-500 text-sm line-clamp-2">{{ job.description[:120] }}{% if job.description|length > 120 %}...{% endif %}</p>
+                {% endif %}
+
+                <!-- Skills Tags -->
+                {% if job.required_skills %}
+                <div class="flex flex-wrap gap-1.5">
+                    {% for rs, skill in job.required_skills[:3] %}
+                    <span class="px-2 py-0.5 bg-purple-50 text-purple-700 rounded text-xs font-medium">
+                        {{ skill.skill_name }}
+                    </span>
+                    {% endfor %}
+                    {% if job.required_skills|length > 3 %}
+                    <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-medium">
+                        +{{ job.required_skills|length - 3 }}
+                    </span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Card Footer -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <a href="{{ url_for('job.job_details', job_id=job.id) }}" 
+                   class="w-full inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 transition">
+                    View Details
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if jobs.pages > 1 %}
+    <div class="flex items-center justify-center space-x-2 pt-8">
+        {% if jobs.has_prev %}
+        <a href="{{ url_for('job.browse_jobs', page=jobs.prev_num, **request.args) }}" 
+            class="px-4 py-2 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Previous
+        </a>
+        {% endif %}
+        
+        <div class="flex items-center space-x-1">
+            {% for page_num in jobs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                    {% if page_num == jobs.page %}
+                    <span class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold">{{ page_num }}</span>
+                    {% else %}
+                    <a href="{{ url_for('job.browse_jobs', page=page_num, **request.args) }}"
+                        class="px-4 py-2 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition">
+                        {{ page_num }}
+                    </a>
+                    {% endif %}
+                {% else %}
+                    <span class="px-2 text-gray-400">...</span>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        {% if jobs.has_next %}
+        <a href="{{ url_for('job.browse_jobs', page=jobs.next_num, **request.args) }}"
+            class="px-4 py-2 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition flex items-center">
+            Next
+            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
+        <div class="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">No jobs found</h3>
+        <p class="text-gray-600 mb-6 max-w-md mx-auto">We couldn't find any jobs matching your criteria. Try adjusting your filters or search terms.</p>
+        <a href="{{ url_for('job.browse_jobs') }}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 transition">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Reset All Filters
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

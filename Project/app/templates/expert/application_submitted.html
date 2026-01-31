@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Application Submitted - HireMe{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center py-12">
+    <div class="max-w-md w-full mx-auto px-4">
+        <div class="bg-white rounded-3xl shadow-xl p-8 text-center">
+            <!-- Success Icon -->
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">Application Submitted!</h1>
+            <p class="text-gray-600 mb-6">
+                Thank you for applying to become an expert interviewer, <strong>{{ application.first_name }}</strong>!
+            </p>
+            
+            <!-- Application Details -->
+            <div class="bg-gray-50 rounded-xl p-4 mb-6 text-left">
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Application ID:</span>
+                        <span class="font-medium text-gray-900">#{{ application.id }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Email:</span>
+                        <span class="font-medium text-gray-900">{{ application.email }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Submitted:</span>
+                        <span class="font-medium text-gray-900">{{ application.created_at.strftime('%B %d, %Y') }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Status:</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            Pending Review
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- What's Next -->
+            <div class="text-left mb-6">
+                <h3 class="font-semibold text-gray-900 mb-3">What happens next?</h3>
+                <ol class="space-y-2 text-sm text-gray-600">
+                    <li class="flex items-start">
+                        <span class="w-5 h-5 bg-indigo-100 rounded-full flex items-center justify-center text-xs font-medium text-indigo-600 mr-2 mt-0.5">1</span>
+                        Our team will review your application within 2-3 business days
+                    </li>
+                    <li class="flex items-start">
+                        <span class="w-5 h-5 bg-indigo-100 rounded-full flex items-center justify-center text-xs font-medium text-indigo-600 mr-2 mt-0.5">2</span>
+                        We'll verify your credentials and experience
+                    </li>
+                    <li class="flex items-start">
+                        <span class="w-5 h-5 bg-indigo-100 rounded-full flex items-center justify-center text-xs font-medium text-indigo-600 mr-2 mt-0.5">3</span>
+                        You'll receive an email with the decision and next steps
+                    </li>
+                </ol>
+            </div>
+            
+            <!-- Actions -->
+            <div class="space-y-3">
+                <a href="{{ url_for('expert_application.check_application_status') }}" 
+                   class="block w-full px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition">
+                    Check Application Status
+                </a>
+                <a href="{{ url_for('main.index') }}" 
+                   class="block w-full px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition">
+                    Return to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
