@@ -83,11 +83,12 @@ A full-stack web application built with Flask that connects job seekers with emp
 - **Migrations**: Flask-Migrate
 - **Authentication**: Flask session management
 
-### Frontend
-- **Templates**: Jinja2 with Bootstrap
-- **JavaScript**: Socket.IO client, vanilla JS
-- **CSS**: Bootstrap 5 with custom styling
-- **Real-time UI**: WebSocket-powered updates
+## Frontend
+- **Templates:** Jinja2 with server-side rendering  
+- **Dynamic Interactions:** HTMX for partial page updates without full reloads  
+- **JavaScript:** Alpine.js for lightweight client-side interactivity  
+- **Styling:** Tailwind CSS with custom utility-based styling  
+- **Real-time UI:** HTMX-powered asynchronous requests for responsive and dynamic interface updates
 
 ### Development Tools
 - **Database**: PyMySQL connector
