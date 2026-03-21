@@ -1,321 +1,316 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}Candidate Dashboard{% endblock %}
+{% block title %}Candidate Portal - HireMe{% endblock %}
 
 {% block content %}
-<div class="space-y-8">
-    <!-- Welcome Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">Welcome back, {{ user.first_name }}!</h1>
-            <p class="mt-1 text-gray-600">Here's what's happening with your job search</p>
-        </div>
-        <div class="mt-4 md:mt-0 flex space-x-3">
-            <a href="{{ url_for('job.browse_jobs') }}" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:opacity-90 transition shadow-lg shadow-indigo-500/25 flex items-center space-x-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-                <span>Find Jobs</span>
-            </a>
-            <a href="{{ url_for('candidate.candidate_profile') }}" class="px-5 py-2.5 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:border-gray-300 hover:bg-gray-50 transition flex items-center space-x-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                </svg>
-                <span>Edit Profile</span>
-            </a>
-        </div>
-    </div>
+<style>
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in { animation: fadeInUp 0.6s ease-out forwards; }
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+    
+    /* Custom Scrollbar for widgets */
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+</style>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Applications -->
-        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                </div>
-                <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">Active</span>
-            </div>
-            <div class="text-3xl font-bold text-gray-900">{{ applications_count }}</div>
-            <div class="text-sm text-gray-500 mt-1">Total Applications</div>
-        </div>
-
-        <!-- Interviews -->
-        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                    </svg>
-                </div>
-                <span class="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-1 rounded-full">Upcoming</span>
-            </div>
-            <div class="text-3xl font-bold text-gray-900">{{ interviews_count }}</div>
-            <div class="text-sm text-gray-500 mt-1">Scheduled Interviews</div>
-        </div>
-
-        <!-- Exams -->
-        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-                    </svg>
-                </div>
-            </div>
-            <div class="text-3xl font-bold text-gray-900">{{ exams_count }}</div>
-            <div class="text-sm text-gray-500 mt-1">Exams Completed</div>
-        </div>
-
-        <!-- Profile Strength -->
-        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                    </svg>
-                </div>
-            </div>
-            <div class="text-3xl font-bold text-gray-900">{{ profile_strength }}%</div>
-            <div class="text-sm text-gray-500 mt-1">Profile Strength</div>
-            <div class="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all" style="width: {{ profile_strength }}%"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Left Column -->
-        <div class="lg:col-span-2 space-y-8">
-            <!-- Job Recommendations -->
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-gray-900">Recommended for You</h2>
-                            <p class="text-sm text-gray-500">Based on your skills and experience</p>
-                        </div>
+<div class="space-y-8 pb-12">
+    
+    <div class="relative bg-gradient-to-r from-slate-900 to-violet-900 rounded-3xl p-8 shadow-xl overflow-hidden animate-fade-in text-white">
+        <div class="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-fuchsia-500 opacity-10 rounded-full blur-2xl"></div>
+        
+        <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="bg-white/10 backdrop-blur-md p-2 rounded-lg text-violet-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     </div>
-                    <a href="{{ url_for('candidate.candidate_recommendations') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-700">View All</a>
+                    <span class="text-violet-100 font-medium tracking-wide uppercase text-sm">Candidate Portal</span>
                 </div>
+                <h1 class="text-3xl md:text-4xl font-bold text-white">
+                    Hello, {{ user.first_name }}!
+                </h1>
+                <p class="text-slate-300 mt-2 max-w-xl">
+                    You have <span class="text-white font-semibold">{{ recommendations|length }} new job matches</span> and <span class="text-white font-semibold">{{ upcoming_interviews|length }} upcoming interviews</span>.
+                </p>
+            </div>
+            
+            <div class="flex gap-3">
+                <a href="{{ url_for('candidate.candidate_profile') }}" class="px-5 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-white font-medium rounded-xl hover:bg-white/20 transition-all shadow-lg transform hover:-translate-y-0.5">
+                    Edit Profile
+                </a>
+                <a href="{{ url_for('job.browse_jobs') }}" class="px-5 py-3 bg-violet-500 text-white font-bold rounded-xl hover:bg-violet-400 shadow-lg hover:shadow-violet-500/30 transition-all transform hover:-translate-y-0.5 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    Find Jobs
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-violet-100/50 transition-all duration-300 transform hover:-translate-y-1 group animate-fade-in delay-100">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Applications</p>
+                    <h3 class="text-4xl font-extrabold text-gray-900 mt-2">{{ applications_count }}</h3>
+                </div>
+                <div class="p-3 bg-violet-50 text-violet-600 rounded-2xl group-hover:bg-violet-600 group-hover:text-white transition-colors duration-300 shadow-sm">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm font-medium text-violet-600 bg-violet-50 w-fit px-2 py-1 rounded-lg">
+                <span>Active Track</span>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-fuchsia-100/50 transition-all duration-300 transform hover:-translate-y-1 group animate-fade-in delay-100">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Interviews</p>
+                    <h3 class="text-4xl font-extrabold text-gray-900 mt-2">{{ interviews_count }}</h3>
+                </div>
+                <div class="p-3 bg-fuchsia-50 text-fuchsia-600 rounded-2xl group-hover:bg-fuchsia-600 group-hover:text-white transition-colors duration-300 shadow-sm">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm font-medium text-fuchsia-600 bg-fuchsia-50 w-fit px-2 py-1 rounded-lg">
+                <span>Scheduled</span>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-rose-100/50 transition-all duration-300 transform hover:-translate-y-1 group animate-fade-in delay-200">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Exams Taken</p>
+                    <h3 class="text-4xl font-extrabold text-gray-900 mt-2">{{ exams_count }}</h3>
+                </div>
+                <div class="p-3 bg-rose-50 text-rose-600 rounded-2xl group-hover:bg-rose-600 group-hover:text-white transition-colors duration-300 shadow-sm">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm font-medium text-rose-600 bg-rose-50 w-fit px-2 py-1 rounded-lg">
+                <span>Assessments</span>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-emerald-100/50 transition-all duration-300 transform hover:-translate-y-1 group animate-fade-in delay-200">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Profile Strength</p>
+                    <div class="flex items-baseline">
+                        <h3 class="text-4xl font-extrabold text-gray-900 mt-2">{{ profile_strength }}</h3>
+                        <span class="text-gray-400 ml-1 font-bold">%</span>
+                    </div>
+                </div>
+                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-2xl group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300 shadow-sm">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+            </div>
+            <div class="mt-4 w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-gradient-to-r from-emerald-400 to-teal-500 h-1.5 rounded-full transition-all duration-1000" style="width: {{ profile_strength }}%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in delay-300">
+        
+        <div class="lg:col-span-2 space-y-8">
+            
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <div class="flex items-center gap-2">
+                        <div class="w-1 h-6 bg-violet-600 rounded-full"></div>
+                        <h2 class="text-lg font-bold text-gray-900">Recommended Jobs</h2>
+                    </div>
+                    <a href="{{ url_for('candidate.candidate_recommendations') }}" class="text-sm font-semibold text-violet-600 hover:text-violet-800 transition-colors">View All Matches</a>
+                </div>
+                
                 <div class="divide-y divide-gray-100">
-                    {% for rec in recommendations[:5] %}
-                    <div class="p-6 hover:bg-gray-50 transition">
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-start space-x-4">
-                                <div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                                    <span class="text-lg font-bold text-gray-600">{{ rec.company.company_name[0] }}</span>
+                    {% for rec in recommendations[:4] %}
+                    <div class="p-6 hover:bg-violet-50/50 transition-colors duration-200 group">
+                        <div class="flex justify-between items-start">
+                            <div class="flex gap-4">
+                                <div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center font-bold text-gray-500 text-xl shadow-sm group-hover:shadow-md transition-shadow">
+                                    {{ rec.company.company_name[0] }}
                                 </div>
                                 <div>
-                                    <h3 class="font-semibold text-gray-900 hover:text-indigo-600 transition">
+                                    <h4 class="text-lg font-bold text-gray-900 group-hover:text-violet-600 transition-colors">
                                         <a href="{{ url_for('job.job_details', job_id=rec.job.id) }}">{{ rec.job.title }}</a>
-                                    </h3>
-                                    <p class="text-sm text-gray-600 mt-0.5">{{ rec.company.company_name }}</p>
-                                    <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                                        <span class="flex items-center">
-                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                            </svg>
-                                            {{ rec.job.location or 'Remote' }}
-                                        </span>
-                                        <span class="flex items-center">
-                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                            </svg>
-                                            {{ rec.job.job_type }}
-                                        </span>
+                                    </h4>
+                                    <p class="text-sm text-gray-500">{{ rec.company.company_name }} • {{ rec.job.location or 'Remote' }}</p>
+                                    <div class="flex gap-2 mt-2">
+                                        <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md font-medium">{{ rec.job.job_type }}</span>
+                                        <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-md font-bold">{{ rec.match_score }}% Match</span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="text-right">
-                                <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold 
-                                    {% if rec.match_score >= 80 %}bg-green-100 text-green-700
-                                    {% elif rec.match_score >= 60 %}bg-yellow-100 text-yellow-700
-                                    {% else %}bg-gray-100 text-gray-700{% endif %}">
-                                    {{ rec.match_score }}% Match
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% else %}
-                    <div class="p-8 text-center">
-                        <div class="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                            </svg>
-                        </div>
-                        <h3 class="font-semibold text-gray-900">No recommendations yet</h3>
-                        <p class="text-gray-500 mt-1">Complete your profile to get personalized job matches</p>
-                        <a href="{{ url_for('candidate.candidate_profile') }}" class="inline-flex items-center mt-4 text-indigo-600 font-medium hover:text-indigo-700">
-                            Complete Profile
-                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                            </svg>
-                        </a>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Recent Applications -->
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                        </div>
-                        <h2 class="text-lg font-bold text-gray-900">Recent Applications</h2>
-                    </div>
-                    <a href="{{ url_for('candidate.candidate_applications') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-700">View All</a>
-                </div>
-                <div class="divide-y divide-gray-100">
-                    {% for app, job, company in applications %}
-                    <div class="p-6 hover:bg-gray-50 transition">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-4">
-                                <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                                    <span class="font-bold text-gray-600">{{ company.company_name[0] }}</span>
-                                </div>
-                                <div>
-                                    <h3 class="font-semibold text-gray-900">{{ job.title }}</h3>
-                                    <p class="text-sm text-gray-500">{{ company.company_name }} • Applied {{ app.applied_at.strftime('%b %d, %Y') }}</p>
-                                </div>
-                            </div>
-                            <span class="px-3 py-1 rounded-full text-xs font-semibold
-                                {% if app.application_status == 'applied' %}bg-blue-100 text-blue-700
-                                {% elif app.application_status == 'under_review' %}bg-yellow-100 text-yellow-700
-                                {% elif app.application_status == 'shortlisted' %}bg-green-100 text-green-700
-                                {% elif app.application_status == 'rejected' %}bg-red-100 text-red-700
-                                {% elif app.application_status == 'hired' %}bg-emerald-100 text-emerald-700
-                                {% else %}bg-gray-100 text-gray-700{% endif %}">
-                                {{ app.application_status|replace('_', ' ')|title }}
-                            </span>
-                        </div>
-                    </div>
-                    {% else %}
-                    <div class="p-8 text-center">
-                        <p class="text-gray-500">No applications yet. Start browsing jobs!</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Column -->
-        <div class="space-y-6">
-            <!-- Upcoming Interviews -->
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100">
-                    <h2 class="text-lg font-bold text-gray-900 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                        Upcoming Interviews
-                    </h2>
-                </div>
-                <div class="p-4 space-y-3">
-                    {% for interview, app, job, company in upcoming_interviews %}
-                    <div class="p-4 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border border-purple-100">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <h4 class="font-semibold text-gray-900">{{ job.title }}</h4>
-                                <p class="text-sm text-gray-600">{{ company.company_name }}</p>
-                                <div class="flex items-center mt-2 text-sm text-purple-600">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    {{ interview.scheduled_time.strftime('%b %d, %Y at %I:%M %p') }}
-                                </div>
-                            </div>
-                            <a href="{{ url_for('interview.join_interview', room_code=interview.room_code) }}" hx-boost="false"
-                               class="px-3 py-1.5 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition">
-                                Join
+                            <a href="{{ url_for('job.job_details', job_id=rec.job.id) }}" class="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-violet-600 hover:text-white hover:border-violet-600 transition-all shadow-sm">
+                                View
                             </a>
                         </div>
                     </div>
                     {% else %}
-                    <div class="p-4 text-center text-gray-500">
-                        <p>No upcoming interviews</p>
+                    <div class="p-12 text-center text-gray-500">
+                        <p>Complete your profile to see personalized job recommendations!</p>
+                        <a href="{{ url_for('candidate.candidate_profile') }}" class="text-violet-600 font-bold hover:underline mt-2 inline-block">Update Skills</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <div class="flex items-center gap-2">
+                        <div class="w-1 h-6 bg-slate-600 rounded-full"></div>
+                        <h2 class="text-lg font-bold text-gray-900">Application History</h2>
+                    </div>
+                    <a href="{{ url_for('candidate.candidate_applications') }}" class="text-sm font-semibold text-slate-600 hover:text-slate-800 transition-colors">View All</a>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 text-gray-500 text-xs font-bold uppercase tracking-wider">
+                            <tr>
+                                <th class="px-6 py-4 text-left">Role & Company</th>
+                                <th class="px-6 py-4 text-left">Applied Date</th>
+                                <th class="px-6 py-4 text-left">Status</th>
+                                <th class="px-6 py-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for app, job, company in applications[:5] %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-bold text-gray-900">{{ job.title }}</div>
+                                    <div class="text-xs text-gray-500">{{ company.company_name }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ app.applied_at.strftime('%b %d, %Y') }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full 
+                                        {% if app.application_status == 'shortlisted' %} bg-green-100 text-green-800
+                                        {% elif app.application_status == 'rejected' %} bg-red-100 text-red-800
+                                        {% else %} bg-blue-100 text-blue-800 {% endif %}">
+                                        {{ app.application_status|replace('_', ' ')|title }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <a href="#" class="text-slate-400 hover:text-violet-600 transition-colors">Details</a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="px-6 py-8 text-center text-gray-500">
+                                    No applications yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-8">
+            
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-fuchsia-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        Upcoming Schedule
+                    </h3>
+                </div>
+                <div class="p-4 space-y-3">
+                    {% for room, app, job, company in upcoming_interviews[:3] %}
+                    <div class="p-4 bg-gradient-to-br from-fuchsia-50 to-violet-50 rounded-xl border border-fuchsia-100 group hover:shadow-md transition-all">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h4 class="font-bold text-gray-900 text-sm">{{ job.title }}</h4>
+                                <p class="text-xs text-gray-600">{{ company.company_name }}</p>
+                            </div>
+                            <span class="text-xs font-bold text-fuchsia-600 bg-white px-2 py-1 rounded-md shadow-sm border border-fuchsia-100">
+                                {{ room.scheduled_time.strftime('%b %d') }}
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center mt-3">
+                            <span class="text-xs text-gray-500 font-mono">{{ room.scheduled_time.strftime('%I:%M %p') }}</span>
+                            <a href="{{ url_for('interview.join_interview', room_code=room.room_code) }}" class="px-3 py-1 bg-white text-fuchsia-600 text-xs font-bold rounded-lg border border-fuchsia-200 hover:bg-fuchsia-600 hover:text-white transition-colors">
+                                Join Room
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-6 text-gray-400 text-sm">
+                        No interviews scheduled.
                     </div>
                     {% endfor %}
                 </div>
                 {% if upcoming_interviews %}
-                <div class="px-6 pb-4">
-                    <a href="{{ url_for('candidate.candidate_interviews') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-700">View All Interviews →</a>
+                <div class="bg-gray-50/50 px-6 py-3 border-t border-gray-100 text-center">
+                    <a href="{{ url_for('candidate.candidate_interviews') }}" class="text-xs font-bold text-violet-600 hover:text-violet-800 uppercase tracking-wide">View Calendar</a>
                 </div>
                 {% endif %}
             </div>
 
-            <!-- Exam Invitations -->
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100">
-                    <h2 class="text-lg font-bold text-gray-900 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         Pending Exams
-                    </h2>
+                    </h3>
                 </div>
                 <div class="p-4 space-y-3">
-                    {% for exam, job, company in exam_invitations %}
-                    <div class="p-4 bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl border border-pink-100">
-                        <h4 class="font-semibold text-gray-900">{{ exam.exam_title }}</h4>
-                        <p class="text-sm text-gray-600">{{ job.title }} • {{ company.company_name }}</p>
-                        <div class="flex items-center justify-between mt-3">
-                            <span class="text-xs text-gray-500">{{ exam.duration_minutes }} mins • {{ exam.total_questions }} questions</span>
-                            <a href="{{ url_for('exam.take_exam', exam_id=exam.id) }}" 
-                               class="px-3 py-1.5 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 transition">
-                                Start Exam
-                            </a>
-                        </div>
+                    {% for exam, job, company in exam_invitations[:2] %}
+                    <div class="p-4 bg-white border border-gray-100 rounded-xl hover:border-rose-200 transition-colors">
+                        <h4 class="font-semibold text-gray-900 text-sm">{{ exam.exam_title }}</h4>
+                        <p class="text-xs text-gray-500 mb-3">{{ job.title }} • {{ company.company_name }}</p>
+                        <a href="{{ url_for('exam.take_exam', exam_id=exam.id) }}" class="block w-full text-center py-2 bg-rose-50 text-rose-600 text-xs font-bold rounded-lg hover:bg-rose-100 transition-colors">
+                            Start Assessment
+                        </a>
                     </div>
                     {% else %}
-                    <div class="p-4 text-center text-gray-500">
-                        <p>No pending exams</p>
+                    <div class="text-center py-6 text-gray-400 text-sm">
+                        No pending exams.
                     </div>
                     {% endfor %}
                 </div>
             </div>
 
-            <!-- Notifications -->
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                    <h2 class="text-lg font-bold text-gray-900">Notifications</h2>
-                    <a href="{{ url_for('notification.notifications') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-700">View All</a>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                    <h3 class="text-lg font-bold text-gray-900">Notifications</h3>
                 </div>
                 <div class="divide-y divide-gray-100">
                     {% for notif in notifications %}
-                    <a href="{{ url_for('notification.mark_notification_read', notification_id=notif.id) }}" class="block p-4 hover:bg-gray-50 transition">
-                        <div class="flex items-start space-x-3">
-                            <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                                </svg>
+                    <a href="{{ url_for('notification.mark_notification_read', notification_id=notif.id) }}" class="block p-4 hover:bg-gray-50 transition-colors group">
+                        <div class="flex gap-3">
+                            <div class="mt-1">
+                                <div class="w-2 h-2 rounded-full bg-violet-500 ring-2 ring-white"></div>
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-gray-900 truncate">{{ notif.title }}</p>
-                                <p class="text-sm text-gray-500 truncate">{{ notif.message }}</p>
-                                <p class="text-xs text-gray-400 mt-1">{{ notif.created_at.strftime('%b %d, %I:%M %p') }}</p>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900 group-hover:text-violet-600 transition-colors">{{ notif.title }}</p>
+                                <p class="text-xs text-gray-500 line-clamp-1">{{ notif.message }}</p>
+                                <p class="text-[10px] text-gray-400 mt-1">{{ notif.created_at.strftime('%H:%M %p') }}</p>
                             </div>
                         </div>
                     </a>
                     {% else %}
-                    <div class="p-4 text-center text-gray-500">
-                        <p>No new notifications</p>
+                    <div class="text-center py-6 text-gray-400 text-sm">
+                        All caught up!
                     </div>
                     {% endfor %}
                 </div>
             </div>
+
         </div>
     </div>
 </div>
