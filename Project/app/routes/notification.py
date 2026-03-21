@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session
+from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify
 from datetime import datetime, timedelta
 
 from extensions import db
@@ -57,10 +57,10 @@ def notifications():
     )
 
 
-@bp.route('/notifications/mark_read/<int:notification_id>')
+@bp.route('/notifications/mark_read/<int:notification_id>', methods=['GET', 'POST'])
 def mark_notification_read(notification_id):
     if 'user_id' not in session:
-        return redirect(url_for('auth.login'))
+        return jsonify({'success': False}), 401
     
     notification = Notification.query.filter_by(
         id=notification_id, user_id=session['user_id']
@@ -70,23 +70,13 @@ def mark_notification_read(notification_id):
         notification.is_read = True
         db.session.commit()
         
+        # Check if this is an HTMX request
+        if request.headers.get('HX-Request'):
+            # Return empty response for HTMX delete swap
+            return '', 200
+        
+        # For traditional requests, redirect to action URL if available
         if notification.action_url:
             return redirect(notification.action_url)
     
-    return redirect(url_for('notification.notifications'))
-
-
-@bp.route('/notifications/mark_all_read', methods=['POST'])
-def mark_all_notifications_read():
-    if 'user_id' not in session:
-        return redirect(url_for('auth.login'))
-    
-    # Mark all unread notifications as read
-    Notification.query.filter_by(
-        user_id=session['user_id'], is_read=False
-    ).update({'is_read': True})
-    
-    db.session.commit()
-    
-    # Return to the same page
     return redirect(url_for('notification.notifications'))
