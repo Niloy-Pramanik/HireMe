@@ -119,6 +119,13 @@
                 </select>
             </div>
 
+            <button type="button" 
+                    hx-get="{{ url_for('job.browse_jobs', sort='smart_match') }}" hx-include="#filter-form" hx-target="#job-results" hx-select="#job-results" hx-swap="outerHTML" hx-push-url="true"
+                    class="flex-shrink-0 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-bold rounded-xl hover:opacity-90 shadow-lg shadow-violet-200 transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                Smart Match
+            </button>
+
             <div class="flex-shrink-0 border-l border-gray-100 pl-2 hidden sm:block">
                 <a href="{{ url_for('job.browse_jobs') }}" class="px-3 py-2 text-sm font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors block">
                     Clear
