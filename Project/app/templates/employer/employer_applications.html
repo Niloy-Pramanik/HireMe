@@ -1,124 +1,201 @@
 {% extends 'base.html' %}
 
-{% block title %}Applications{% endblock %}
+{% block title %}Manage Applications - HireMe{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">Applications</h1>
-            <p class="mt-1 text-gray-600">Review and manage all job applications</p>
+<style>
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in { animation: fadeInUp 0.5s ease-out forwards; }
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    
+    /* Custom scrollbar for table */
+    .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+</style>
+
+<div class="space-y-8 pb-12">
+    
+    <div class="relative bg-gradient-to-r from-slate-900 to-teal-900 rounded-3xl p-8 shadow-xl overflow-hidden animate-fade-in text-white">
+        <div class="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-emerald-500 opacity-10 rounded-full blur-2xl"></div>
+        
+        <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+                <nav class="flex items-center space-x-2 text-sm text-teal-200 mb-2">
+                    <a href="{{ url_for('employer.employer_dashboard') }}" class="hover:text-white transition-colors">Dashboard</a>
+                    <svg class="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    <span class="text-white font-medium">Applications</span>
+                </nav>
+                <h1 class="text-3xl font-bold text-white">Candidate Applications</h1>
+                <p class="text-slate-300 mt-2">
+                    Review, shortlist, and manage your job applications across all positions.
+                </p>
+            </div>
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <form method="GET" action="{{ url_for('employer.employer_applications') }}" class="flex flex-wrap items-end gap-4">
-            <div class="flex-1 min-w-[200px]">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Filter by Job</label>
-                <select name="job_id" class="form-input w-full">
-                    <option value="">All Jobs</option>
-                    {% for job in company_jobs %}
-                    <option value="{{ job.id }}" {% if job_filter == job.id|string %}selected{% endif %}>{{ job.title }}</option>
-                    {% endfor %}
-                </select>
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 animate-fade-in delay-100">
+        <form method="GET" action="{{ url_for('employer.employer_applications') }}" class="flex flex-col md:flex-row gap-4 items-end md:items-center justify-between">
+            
+            <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto flex-1">
+                <div class="w-full md:w-64">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Filter by Job</label>
+                    <div class="relative">
+                        <select name="job_id" class="form-input w-full pl-10 appearance-none bg-gray-50 border-gray-200 focus:bg-white focus:border-teal-500 focus:ring-teal-500 transition-colors cursor-pointer text-sm">
+                            <option value="">All Job Postings</option>
+                            {% for job in company_jobs %}
+                            <option value="{{ job.id }}" {% if job_filter == job.id|string %}selected{% endif %}>{{ job.title }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full md:w-56">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Filter by Status</label>
+                    <div class="relative">
+                        <select name="status" class="form-input w-full pl-10 appearance-none bg-gray-50 border-gray-200 focus:bg-white focus:border-teal-500 focus:ring-teal-500 transition-colors cursor-pointer text-sm">
+                            <option value="">All Statuses</option>
+                            <option value="applied" {% if status_filter == 'applied' %}selected{% endif %}>Applied</option>
+                            <option value="under_review" {% if status_filter == 'under_review' %}selected{% endif %}>Under Review</option>
+                            <option value="shortlisted" {% if status_filter == 'shortlisted' %}selected{% endif %}>Shortlisted</option>
+                            <option value="interview_scheduled" {% if status_filter == 'interview_scheduled' %}selected{% endif %}>Interview</option>
+                            <option value="hired" {% if status_filter == 'hired' %}selected{% endif %}>Hired</option>
+                            <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                        </select>
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="flex-1 min-w-[200px]">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Filter by Status</label>
-                <select name="status" class="form-input w-full">
-                    <option value="">All Statuses</option>
-                    <option value="applied" {% if status_filter == 'applied' %}selected{% endif %}>Applied</option>
-                    <option value="under_review" {% if status_filter == 'under_review' %}selected{% endif %}>Under Review</option>
-                    <option value="shortlisted" {% if status_filter == 'shortlisted' %}selected{% endif %}>Shortlisted</option>
-                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
-                    <option value="hired" {% if status_filter == 'hired' %}selected{% endif %}>Hired</option>
-                </select>
-            </div>
-            <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition">
+
+            <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-teal-500/30 flex items-center whitespace-nowrap">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 00-1 1v2c0 .5.238.97.643 1.28A.75.75 0 003.75 9H21a.75.75 0 00.107-.013A1 1 0 0022 7V5a1 1 0 00-1-1H3z"></path></svg>
                 Apply Filters
             </button>
             {% if status_filter or job_filter %}
-            <a href="{{ url_for('employer.employer_applications') }}" class="px-5 py-2.5 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50 transition">
-                Clear
+            <a href="{{ url_for('employer.employer_applications') }}" class="px-4 py-2.5 text-sm font-semibold text-rose-600 bg-rose-50 rounded-xl hover:bg-rose-100 transition-colors flex items-center whitespace-nowrap">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                Clear Filters
             </a>
             {% endif %}
         </form>
     </div>
 
-    <!-- Applications Table -->
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-fade-in delay-200">
         {% if applications %}
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto custom-scrollbar">
             <table class="w-full">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Candidate</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Position</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Match Score</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Applied</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Exam Score</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                <thead>
+                    <tr class="bg-gray-50/50 border-b border-gray-100">
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">Candidate</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">Role Applied</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">Match Score</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">Exam</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">Applied Date</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">Status</th>
+                        <th class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wide">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     {% for app, job, candidate, candidate_user, match_score in applications %}
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4">
+                    <tr class="group hover:bg-teal-50/20 transition-colors duration-200">
+                        <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <img src="{{ url_for('common.get_candidate_profile_picture', candidate_id=candidate.id) }}" 
                                      alt="{{ candidate_user.first_name }} {{ candidate_user.last_name }}" 
-                                     class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 flex-shrink-0">
+                                     class="w-10 h-10 rounded-full object-cover shadow-sm ring-2 ring-white group-hover:ring-teal-100 transition-all flex-shrink-0">
                                 <div class="ml-3">
-                                    <p class="font-semibold text-gray-900">{{ candidate_user.first_name }} {{ candidate_user.last_name }}</p>
-                                    <p class="text-sm text-gray-500">{{ candidate_user.email }}</p>
+                                    <p class="text-sm font-bold text-gray-900 group-hover:text-teal-700 transition-colors">
+                                        {{ candidate_user.first_name }} {{ candidate_user.last_name }}
+                                    </p>
+                                    <p class="text-xs text-gray-500">{{ candidate_user.email }}</p>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-6 py-4">
-                            <p class="font-medium text-gray-900">{{ job.title }}</p>
-                            <p class="text-sm text-gray-500">{{ job.location or 'Remote' }}</p>
+
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ job.title }}</div>
+                            <div class="text-xs text-gray-500 flex items-center mt-0.5">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                {{ job.location or 'Remote' }}
+                            </div>
                         </td>
-                        <td class="px-6 py-4">
+
+                        <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
-                                <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                                    <div class="h-2 rounded-full {% if match_score >= 80 %}bg-green-500{% elif match_score >= 60 %}bg-yellow-500{% elif match_score >= 40 %}bg-orange-500{% else %}bg-red-500{% endif %}" style="width: {{ match_score }}%"></div>
+                                <div class="relative w-10 h-10">
+                                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                        <path class="text-gray-100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+                                        <path class="
+                                            {% if match_score >= 80 %}text-emerald-500{% elif match_score >= 50 %}text-amber-500{% else %}text-rose-500{% endif %}" 
+                                            stroke-dasharray="{{ match_score }}, 100" 
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+                                            fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                                        </path>
+                                    </svg>
+                                    <div class="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-700">
+                                        {{ match_score|int }}%
+                                    </div>
                                 </div>
-                                <span class="text-sm font-semibold {% if match_score >= 80 %}text-green-600{% elif match_score >= 60 %}text-yellow-600{% elif match_score >= 40 %}text-orange-600{% else %}text-red-600{% endif %}">
-                                    {{ match_score|int }}%
+                                <span class="ml-3 text-xs font-medium 
+                                    {% if match_score >= 80 %}text-emerald-600{% elif match_score >= 50 %}text-amber-600{% else %}text-rose-600{% endif %}">
+                                    {% if match_score >= 80 %}Excellent{% elif match_score >= 50 %}Good{% else %}Low{% endif %}
                                 </span>
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-gray-600 text-sm">
-                            {{ app.applied_at.strftime('%b %d, %Y') }}
-                        </td>
-                        <td class="px-6 py-4">
+
+                        <td class="px-6 py-4 whitespace-nowrap">
                             {% if app.exam_score is not none %}
-                            <span class="px-3 py-1 rounded-full text-sm font-semibold
-                                {% if app.exam_score >= 80 %}bg-green-100 text-green-700
-                                {% elif app.exam_score >= 60 %}bg-yellow-100 text-yellow-700
-                                {% else %}bg-red-100 text-red-700{% endif %}">
-                                {{ app.exam_score|int }}%
-                            </span>
+                                <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-lg
+                                    {% if app.exam_score >= 80 %}bg-emerald-100 text-emerald-800
+                                    {% elif app.exam_score >= 60 %}bg-amber-100 text-amber-800
+                                    {% else %}bg-rose-100 text-rose-800{% endif %}">
+                                    {{ app.exam_score|int }}%
+                                </span>
                             {% else %}
-                            <span class="text-gray-400 text-sm">Not taken</span>
+                                <span class="text-xs text-gray-400 font-medium italic">Pending</span>
                             {% endif %}
                         </td>
-                        <td class="px-6 py-4">
-                            <span class="px-3 py-1 rounded-full text-xs font-semibold
-                                {% if app.application_status == 'applied' %}bg-blue-100 text-blue-700
-                                {% elif app.application_status == 'under_review' %}bg-yellow-100 text-yellow-700
-                                {% elif app.application_status == 'shortlisted' %}bg-green-100 text-green-700
-                                {% elif app.application_status == 'rejected' %}bg-red-100 text-red-700
-                                {% elif app.application_status == 'hired' %}bg-emerald-100 text-emerald-700
-                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ app.applied_at.strftime('%b %d, %Y') }}</div>
+                            <div class="text-xs text-gray-400">{{ app.applied_at.strftime('%I:%M %p') }}</div>
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border shadow-sm
+                                {% if app.application_status == 'applied' %} bg-blue-50 text-blue-700 border-blue-100
+                                {% elif app.application_status == 'under_review' %} bg-amber-50 text-amber-700 border-amber-100
+                                {% elif app.application_status == 'shortlisted' %} bg-teal-50 text-teal-700 border-teal-100
+                                {% elif app.application_status == 'interview_scheduled' %} bg-purple-50 text-purple-700 border-purple-100
+                                {% elif app.application_status == 'hired' %} bg-emerald-50 text-emerald-700 border-emerald-100
+                                {% elif app.application_status == 'rejected' %} bg-slate-50 text-slate-600 border-slate-200
+                                {% else %} bg-gray-50 text-gray-700 border-gray-100 {% endif %}">
                                 {{ app.application_status|replace('_', ' ')|title }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-right">
-                            <a href="{{ url_for('employer.employer_view_application', application_id=app.id) }}" class="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition">
+
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="{{ url_for('employer.employer_view_application', application_id=app.id) }}" 
+                               class="text-teal-600 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-colors font-bold inline-flex items-center">
                                 Review
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                             </a>
                         </td>
                     </tr>
@@ -128,19 +205,14 @@
         </div>
         {% else %}
         <div class="p-12 text-center">
-            <div class="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-6 flex items-center justify-center">
-                <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
+            <div class="w-20 h-20 bg-slate-50 rounded-full mx-auto mb-6 flex items-center justify-center border border-slate-100">
+                <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
             </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">No applications found</h3>
-            <p class="text-gray-600">
-                {% if status_filter or job_filter %}
-                Try adjusting your filters to see more applications
-                {% else %}
-                Applications will appear here once candidates apply to your jobs
-                {% endif %}
-            </p>
+            <h3 class="text-lg font-bold text-gray-900">No applications found</h3>
+            <p class="text-gray-400 mt-1">Try adjusting your filters or wait for new candidates.</p>
+            <div class="mt-6">
+                <a href="{{ url_for('employer.employer_applications') }}" class="text-teal-600 hover:text-teal-800 font-semibold text-sm">Clear all filters</a>
+            </div>
         </div>
         {% endif %}
     </div>
