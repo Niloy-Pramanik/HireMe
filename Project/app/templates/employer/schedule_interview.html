@@ -298,9 +298,14 @@
                                 Schedule Interview
                             </button>
                             
+                            <button type="button" onclick="addToCalendarDirect()" class="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                Add to Calendar
+                            </button>
+                            
                             <button type="button" onclick="exportToCalendar()" class="w-full border-2 border-gray-200 hover:border-teal-200 hover:bg-teal-50 text-gray-700 hover:text-teal-700 font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                Export
+                                Export ICS
                             </button>
                         </div>
                     </div>
@@ -479,6 +484,104 @@ document.addEventListener('DOMContentLoaded', function() {
         window.URL.revokeObjectURL(url);
     }
     
+    // Add to Calendar functionality with backend integration
+    async function addToCalendarDirect() {
+        // Validation
+        if (!dateInput.value || !timeInput.value) {
+            alert('Please select a date and time first.');
+            return;
+        }
+
+        const checkedInterviewers = document.querySelectorAll('input[name="interviewer_ids"]:checked').length;
+        if (checkedInterviewers === 0) {
+            alert('Please select at least one interviewer.');
+            return;
+        }
+
+        const isInPerson = document.querySelector('input[name="interview_type"]:checked').value === 'in_person';
+        if (isInPerson && !locationInput.value.trim()) {
+            alert('Please provide a meeting location for in-person interviews.');
+            return;
+        }
+
+        try {
+            // Show loading state
+            const button = event.target.closest('button');
+            const originalText = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<svg class="w-5 h-5 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Processing...';
+
+            const interviewType = document.querySelector('input[name="interview_type"]:checked').value;
+            const eventLocation = interviewType === 'video' ? 'Video Call' : locationInput.value;
+            
+            // Get interviewer names for description
+            const interviewerNames = Array.from(
+                document.querySelectorAll('input[name="interviewer_ids"]:checked')
+            ).map(checkbox => {
+                const label = checkbox.closest('label');
+                const nameElement = label.querySelector('p.font-semibold');
+                return nameElement ? nameElement.textContent.split('✓')[0].trim() : 'Unknown';
+            }).join(', ');
+
+            const eventData = {
+                date: dateInput.value,
+                time: timeInput.value,
+                duration: parseInt(durationSelect.value),
+                title: `Interview: {{ candidate.user.first_name }} {{ candidate.user.last_name }} - {{ job.title }}`,
+                description: `Interview Type: ${interviewType === 'video' ? 'Video Call' : 'In Person'}\nLocation: ${eventLocation}\nCandidate: {{ candidate.user.first_name }} {{ candidate.user.last_name }}\nPosition: {{ job.title }}\nInterviewers: ${interviewerNames}`,
+                location: eventLocation
+            };
+
+            // Send to backend
+            const response = await fetch('{{ url_for("employer.add_to_calendar") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('input[name="_token"]')?.value || ''
+                },
+                body: JSON.stringify(eventData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Download the calendar file
+                const downloadLink = document.createElement('a');
+                downloadLink.href = '{{ url_for("employer.download_calendar") }}';
+                downloadLink.click();
+
+                // Show success message
+                showSuccessMessage('Calendar event added! Check your downloads folder.');
+                button.disabled = false;
+                button.innerHTML = originalText;
+            } else {
+                alert('Error: ' + (result.error || 'Failed to add to calendar'));
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error adding to calendar: ' + error.message);
+            const button = event.target.closest('button');
+            button.disabled = false;
+            button.innerHTML = originalText;
+        }
+    }
+
+    // Success message helper
+    function showSuccessMessage(message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'fixed top-24 right-4 bg-emerald-500 text-white px-6 py-3 rounded-xl shadow-lg';
+        messageDiv.textContent = message;
+        document.body.appendChild(messageDiv);
+        
+        setTimeout(() => {
+            messageDiv.style.opacity = '0';
+            messageDiv.style.transition = 'opacity 0.3s ease-out';
+            setTimeout(() => messageDiv.remove(), 300);
+        }, 3000);
+    }
+    
     function generateICalEvent(title, description, startDate, endDate, location) {
         const formatDate = (date) => {
             const year = date.getUTCFullYear();
@@ -495,8 +598,9 @@ document.addEventListener('DOMContentLoaded', function() {
         return `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//HireMe//Scheduler//EN\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\nBEGIN:VEVENT\nUID:${uid}\nDTSTAMP:${dtstamp}\nDTSTART:${formatDate(startDate)}\nDTEND:${formatDate(endDate)}\nSUMMARY:${title}\nDESCRIPTION:${description}\nLOCATION:${location}\nSTATUS:CONFIRMED\nEND:VEVENT\nEND:VCALENDAR`;
     }
 
-    // Make exportToCalendar available globally
+    // Make functions available globally
     window.exportToCalendar = exportToCalendar;
+    window.addToCalendarDirect = addToCalendarDirect;
 
     // Initialize summary on page load
     updateSummary();
