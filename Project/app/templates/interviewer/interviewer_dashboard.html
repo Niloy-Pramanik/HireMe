@@ -299,7 +299,7 @@
                                         <p class="text-xs text-gray-400 mt-1">Room: {{ room.room_code }}</p>
                                         {% endif %}
                                     </div>
-                                    <button onclick="downloadCalendarEvent('{{ room.scheduled_time.isoformat() }}', '{{ job.title }} Interview - {{ application.candidate.user.first_name if application.candidate and application.candidate.user else 'Candidate' }}', '{{ room.room_code }}')" class="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-colors whitespace-nowrap ml-4">
+                                    <button @click="downloadCalendarEvent('{{ room.scheduled_time.isoformat() }}', '{{ job.title }} Interview - {{ application.candidate.user.first_name if application.candidate and application.candidate.user else 'Candidate' }}', '{{ room.room_code }}')" class="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-colors whitespace-nowrap ml-4">
                                         Add to Calendar
                                     </button>
                                 </div>
