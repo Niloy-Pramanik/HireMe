@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, send_file
 from extensions import db
 from models import (
     User, ActivityLog, Notification, InterviewRoom, InterviewParticipant, 
@@ -6,9 +6,11 @@ from models import (
     JobApplication, JobPosting, Company, CandidateProfile,
     InterviewerEarning, InterviewerProfile
 )
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import time
+import uuid
+from io import BytesIO
 
 bp = Blueprint('interview', __name__)
 
@@ -685,6 +687,146 @@ def cancel_interview(interview_id):
         flash(f'Error cancelling interview: {str(e)}', 'error')
     
     return redirect(url_for('interview.manage_interviews'))
+
+# --- CALENDAR INTEGRATION ROUTES ---
+
+@bp.route('/interview/add-to-calendar', methods=['POST'])
+def add_to_calendar():
+    """Add interview event to calendar"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+    
+    try:
+        data = request.get_json()
+        title = data.get('title', 'Interview')
+        scheduled_time_str = data.get('scheduled_time')
+        
+        if not scheduled_time_str:
+            return jsonify({'success': False, 'message': 'Missing scheduled time'}), 400
+        
+        # Parse ISO format datetime
+        from datetime import datetime, timedelta
+        scheduled_time = datetime.fromisoformat(scheduled_time_str.replace('Z', '+00:00'))
+        
+        # Create end time (1 hour after start)
+        end_time = scheduled_time + timedelta(hours=1)
+        
+        # Store calendar event in session for download
+        session['pending_calendar_event'] = {
+            'title': title,
+            'start_time': scheduled_time.isoformat(),
+            'end_time': end_time.isoformat()
+        }
+        session.modified = True
+        
+        return jsonify({'success': True, 'message': 'Event prepared for calendar'})
+    
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@bp.route('/interview/download-calendar', methods=['POST'])
+def download_calendar():
+    """Download calendar event as .ics file"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    try:
+        from datetime import datetime, timedelta
+        import uuid
+        from io import BytesIO
+        from flask import send_file
+        
+        data = request.get_json()
+        title = data.get('title', 'Interview')
+        scheduled_time_str = data.get('scheduled_time')
+        room_code = data.get('room_code', '')
+        
+        if not scheduled_time_str:
+            return jsonify({'error': 'Missing scheduled time'}), 400
+        
+        # Parse ISO format datetime
+        scheduled_time = datetime.fromisoformat(scheduled_time_str.replace('Z', '+00:00'))
+        end_time = scheduled_time + timedelta(hours=1)
+        
+        # Generate iCalendar event
+        ical_event = generate_ical_event_for_interview(
+            title=title,
+            start_time=scheduled_time,
+            end_time=end_time,
+            room_code=room_code
+        )
+        
+        # Create response with .ics file
+        return send_file(
+            BytesIO(ical_event.encode('utf-8')),
+            mimetype='text/calendar',
+            as_attachment=True,
+            download_name=f"interview_{scheduled_time.strftime('%Y%m%d_%H%M%S')}.ics"
+        )
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+def generate_ical_event_for_interview(title, start_time, end_time, room_code=''):
+    """Generate iCalendar event format for interview"""
+    import uuid
+    
+    def format_ical_datetime(dt):
+        """Format datetime to iCalendar format (UTC)"""
+        year = dt.strftime('%Y')
+        month = dt.strftime('%m')
+        day = dt.strftime('%d')
+        hour = dt.strftime('%H')
+        minute = dt.strftime('%M')
+        second = dt.strftime('%S')
+        return f"{year}{month}{day}T{hour}{minute}{second}Z"
+    
+    # Generate unique UID
+    uid = f"interview-{uuid.uuid4().hex}@hireme.com"
+    dtstamp = format_ical_datetime(datetime.utcnow())
+    
+    # Escape special characters in text fields
+    def escape_text(text):
+        text = str(text)
+        text = text.replace('\\', '\\\\')
+        text = text.replace('\n', '\\n')
+        text = text.replace(';', '\\;')
+        text = text.replace(',', '\\,')
+        return text
+    
+    description = f"HireMe Interview Event\nRoom Code: {room_code}" if room_code else "HireMe Interview Event"
+    location = f"HireMe Virtual Interview Room - {room_code}" if room_code else "HireMe Virtual Interview Room"
+    
+    ical_content = (
+        f"BEGIN:VCALENDAR\n"
+        f"VERSION:2.0\n"
+        f"PRODID:-//HireMe//Interview Scheduler//EN\n"
+        f"CALSCALE:GREGORIAN\n"
+        f"METHOD:PUBLISH\n"
+        f"X-WR-CALNAME:HireMe Interview Scheduler\n"
+        f"X-WR-TIMEZONE:UTC\n"
+        f"BEGIN:VEVENT\n"
+        f"UID:{uid}\n"
+        f"DTSTAMP:{dtstamp}\n"
+        f"DTSTART:{format_ical_datetime(start_time)}\n"
+        f"DTEND:{format_ical_datetime(end_time)}\n"
+        f"SUMMARY:{escape_text(title)}\n"
+        f"DESCRIPTION:{escape_text(description)}\n"
+        f"LOCATION:{escape_text(location)}\n"
+        f"STATUS:CONFIRMED\n"
+        f"SEQUENCE:0\n"
+        f"BEGIN:VALARM\n"
+        f"TRIGGER:-PT15M\n"
+        f"ACTION:DISPLAY\n"
+        f"DESCRIPTION:Interview Reminder\n"
+        f"END:VALARM\n"
+        f"END:VEVENT\n"
+        f"END:VCALENDAR"
+    )
+    
+    return ical_content
 
 # --- HELPER FUNCTIONS ---
 

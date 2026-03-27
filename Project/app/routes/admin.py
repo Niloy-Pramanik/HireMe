@@ -125,6 +125,198 @@ def admin_skills():
                 
                 flash('Skill added successfully', 'success')
         
+        elif action == 'auto_add_skills':
+            # Automatically add comprehensive bunch of skills for job postings
+            default_skills = [
+                # Programming Languages
+                {'name': 'Python', 'category': 'Programming Languages', 'desc': 'Python programming language'},
+                {'name': 'JavaScript', 'category': 'Programming Languages', 'desc': 'JavaScript programming language'},
+                {'name': 'TypeScript', 'category': 'Programming Languages', 'desc': 'TypeScript programming language'},
+                {'name': 'Java', 'category': 'Programming Languages', 'desc': 'Java programming language'},
+                {'name': 'C++', 'category': 'Programming Languages', 'desc': 'C++ programming language'},
+                {'name': 'C#', 'category': 'Programming Languages', 'desc': 'C# programming language'},
+                {'name': 'Go', 'category': 'Programming Languages', 'desc': 'Go programming language'},
+                {'name': 'Rust', 'category': 'Programming Languages', 'desc': 'Rust programming language'},
+                {'name': 'PHP', 'category': 'Programming Languages', 'desc': 'PHP programming language'},
+                {'name': 'Ruby', 'category': 'Programming Languages', 'desc': 'Ruby programming language'},
+                {'name': 'Swift', 'category': 'Programming Languages', 'desc': 'Swift programming language'},
+                {'name': 'Kotlin', 'category': 'Programming Languages', 'desc': 'Kotlin programming language'},
+                {'name': 'Scala', 'category': 'Programming Languages', 'desc': 'Scala programming language'},
+                {'name': 'Perl', 'category': 'Programming Languages', 'desc': 'Perl programming language'},
+                {'name': 'Shell Script', 'category': 'Programming Languages', 'desc': 'Shell scripting'},
+                
+                # Frontend Frameworks & Libraries
+                {'name': 'React', 'category': 'Frontend', 'desc': 'React JavaScript library'},
+                {'name': 'Vue.js', 'category': 'Frontend', 'desc': 'Vue.js framework'},
+                {'name': 'Angular', 'category': 'Frontend', 'desc': 'Angular framework'},
+                {'name': 'Next.js', 'category': 'Frontend', 'desc': 'Next.js React framework'},
+                {'name': 'Svelte', 'category': 'Frontend', 'desc': 'Svelte framework'},
+                {'name': 'Ember.js', 'category': 'Frontend', 'desc': 'Ember.js framework'},
+                {'name': 'Nuxt.js', 'category': 'Frontend', 'desc': 'Nuxt.js Vue framework'},
+                {'name': 'jQuery', 'category': 'Frontend', 'desc': 'jQuery library'},
+                {'name': 'Backbone.js', 'category': 'Frontend', 'desc': 'Backbone.js framework'},
+                
+                # Backend Frameworks
+                {'name': 'Django', 'category': 'Backend', 'desc': 'Django web framework'},
+                {'name': 'Flask', 'category': 'Backend', 'desc': 'Flask web framework'},
+                {'name': 'FastAPI', 'category': 'Backend', 'desc': 'FastAPI web framework'},
+                {'name': 'Spring Boot', 'category': 'Backend', 'desc': 'Spring Boot framework'},
+                {'name': 'Express.js', 'category': 'Backend', 'desc': 'Express.js framework'},
+                {'name': 'NestJS', 'category': 'Backend', 'desc': 'NestJS framework'},
+                {'name': 'Laravel', 'category': 'Backend', 'desc': 'Laravel PHP framework'},
+                {'name': 'Symfony', 'category': 'Backend', 'desc': 'Symfony PHP framework'},
+                {'name': 'Rails', 'category': 'Backend', 'desc': 'Ruby on Rails framework'},
+                {'name': 'Sinatra', 'category': 'Backend', 'desc': 'Sinatra Ruby framework'},
+                {'name': 'ASP.NET', 'category': 'Backend', 'desc': 'ASP.NET framework'},
+                {'name': 'ASP.NET Core', 'category': 'Backend', 'desc': 'ASP.NET Core framework'},
+                {'name': 'Gin', 'category': 'Backend', 'desc': 'Gin Go framework'},
+                {'name': 'Echo', 'category': 'Backend', 'desc': 'Echo Go framework'},
+                
+                # Databases
+                {'name': 'MySQL', 'category': 'Databases', 'desc': 'MySQL relational database'},
+                {'name': 'PostgreSQL', 'category': 'Databases', 'desc': 'PostgreSQL relational database'},
+                {'name': 'MongoDB', 'category': 'Databases', 'desc': 'MongoDB NoSQL database'},
+                {'name': 'Redis', 'category': 'Databases', 'desc': 'Redis in-memory database'},
+                {'name': 'SQLite', 'category': 'Databases', 'desc': 'SQLite lightweight database'},
+                {'name': 'Firebase', 'category': 'Databases', 'desc': 'Firebase real-time database'},
+                {'name': 'Oracle', 'category': 'Databases', 'desc': 'Oracle Database'},
+                {'name': 'Microsoft SQL Server', 'category': 'Databases', 'desc': 'SQL Server database'},
+                {'name': 'Cassandra', 'category': 'Databases', 'desc': 'Apache Cassandra database'},
+                {'name': 'DynamoDB', 'category': 'Databases', 'desc': 'AWS DynamoDB database'},
+                {'name': 'Elasticsearch', 'category': 'Databases', 'desc': 'Elasticsearch search engine'},
+                {'name': 'CouchDB', 'category': 'Databases', 'desc': 'CouchDB document database'},
+                {'name': 'Neo4j', 'category': 'Databases', 'desc': 'Neo4j graph database'},
+                
+                # Cloud & DevOps
+                {'name': 'AWS', 'category': 'Cloud & DevOps', 'desc': 'Amazon Web Services'},
+                {'name': 'Azure', 'category': 'Cloud & DevOps', 'desc': 'Microsoft Azure'},
+                {'name': 'Google Cloud', 'category': 'Cloud & DevOps', 'desc': 'Google Cloud Platform'},
+                {'name': 'Docker', 'category': 'Cloud & DevOps', 'desc': 'Docker containerization'},
+                {'name': 'Kubernetes', 'category': 'Cloud & DevOps', 'desc': 'Kubernetes orchestration'},
+                {'name': 'Jenkins', 'category': 'Cloud & DevOps', 'desc': 'Jenkins CI/CD'},
+                {'name': 'GitLab CI', 'category': 'Cloud & DevOps', 'desc': 'GitLab CI/CD'},
+                {'name': 'GitHub Actions', 'category': 'Cloud & DevOps', 'desc': 'GitHub Actions CI/CD'},
+                {'name': 'Git', 'category': 'Cloud & DevOps', 'desc': 'Git version control'},
+                {'name': 'SVN', 'category': 'Cloud & DevOps', 'desc': 'Subversion version control'},
+                {'name': 'Terraform', 'category': 'Cloud & DevOps', 'desc': 'Terraform infrastructure'},
+                {'name': 'Ansible', 'category': 'Cloud & DevOps', 'desc': 'Ansible automation'},
+                {'name': 'Chef', 'category': 'Cloud & DevOps', 'desc': 'Chef configuration management'},
+                {'name': 'Puppet', 'category': 'Cloud & DevOps', 'desc': 'Puppet configuration management'},
+                {'name': 'Prometheus', 'category': 'Cloud & DevOps', 'desc': 'Prometheus monitoring'},
+                {'name': 'Grafana', 'category': 'Cloud & DevOps', 'desc': 'Grafana visualization'},
+                {'name': 'ELK Stack', 'category': 'Cloud & DevOps', 'desc': 'Elasticsearch Logstash Kibana'},
+                
+                # Design Tools
+                {'name': 'Figma', 'category': 'Design', 'desc': 'Figma design tool'},
+                {'name': 'Adobe XD', 'category': 'Design', 'desc': 'Adobe XD design tool'},
+                {'name': 'Adobe Photoshop', 'category': 'Design', 'desc': 'Adobe Photoshop image editor'},
+                {'name': 'Adobe Illustrator', 'category': 'Design', 'desc': 'Adobe Illustrator vector editor'},
+                {'name': 'Sketch', 'category': 'Design', 'desc': 'Sketch design tool'},
+                {'name': 'InVision', 'category': 'Design', 'desc': 'InVision prototyping tool'},
+                {'name': 'Canva', 'category': 'Design', 'desc': 'Canva design platform'},
+                {'name': 'UI/UX Design', 'category': 'Design', 'desc': 'User Interface and Experience Design'},
+                {'name': 'Prototyping', 'category': 'Design', 'desc': 'Product prototyping'},
+                {'name': 'Wireframing', 'category': 'Design', 'desc': 'Wireframe design'},
+                
+                # Frontend Technologies
+                {'name': 'HTML5', 'category': 'Frontend', 'desc': 'HTML5 markup language'},
+                {'name': 'CSS3', 'category': 'Frontend', 'desc': 'CSS3 styling'},
+                {'name': 'Tailwind CSS', 'category': 'Frontend', 'desc': 'Tailwind CSS framework'},
+                {'name': 'Bootstrap', 'category': 'Frontend', 'desc': 'Bootstrap CSS framework'},
+                {'name': 'Sass', 'category': 'Frontend', 'desc': 'Sass CSS preprocessor'},
+                {'name': 'LESS', 'category': 'Frontend', 'desc': 'LESS CSS preprocessor'},
+                {'name': 'Webpack', 'category': 'Frontend', 'desc': 'Webpack bundler'},
+                {'name': 'Gulp', 'category': 'Frontend', 'desc': 'Gulp task runner'},
+                {'name': 'Grunt', 'category': 'Frontend', 'desc': 'Grunt task runner'},
+                {'name': 'npm', 'category': 'Frontend', 'desc': 'npm package manager'},
+                {'name': 'Yarn', 'category': 'Frontend', 'desc': 'Yarn package manager'},
+                
+                # Mobile Development
+                {'name': 'React Native', 'category': 'Mobile', 'desc': 'React Native mobile framework'},
+                {'name': 'Flutter', 'category': 'Mobile', 'desc': 'Flutter mobile framework'},
+                {'name': 'Swift', 'category': 'Mobile', 'desc': 'Swift iOS development'},
+                {'name': 'Kotlin', 'category': 'Mobile', 'desc': 'Kotlin Android development'},
+                {'name': 'Java', 'category': 'Mobile', 'desc': 'Java Android development'},
+                {'name': 'Objective-C', 'category': 'Mobile', 'desc': 'Objective-C iOS development'},
+                {'name': 'Xamarin', 'category': 'Mobile', 'desc': 'Xamarin cross-platform'},
+                {'name': 'Ionic', 'category': 'Mobile', 'desc': 'Ionic mobile framework'},
+                {'name': 'Cordova', 'category': 'Mobile', 'desc': 'Apache Cordova framework'},
+                
+                # Testing
+                {'name': 'Jest', 'category': 'Testing', 'desc': 'Jest testing framework'},
+                {'name': 'Mocha', 'category': 'Testing', 'desc': 'Mocha testing framework'},
+                {'name': 'Chai', 'category': 'Testing', 'desc': 'Chai assertion library'},
+                {'name': 'Selenium', 'category': 'Testing', 'desc': 'Selenium web testing'},
+                {'name': 'Cypress', 'category': 'Testing', 'desc': 'Cypress end-to-end testing'},
+                {'name': 'PyTest', 'category': 'Testing', 'desc': 'PyTest testing framework'},
+                {'name': 'JUnit', 'category': 'Testing', 'desc': 'JUnit testing framework'},
+                {'name': 'TestNG', 'category': 'Testing', 'desc': 'TestNG testing framework'},
+                {'name': 'RSpec', 'category': 'Testing', 'desc': 'RSpec Ruby testing'},
+                {'name': 'Postman', 'category': 'Testing', 'desc': 'Postman API testing'},
+                
+                # Data Science & Analytics
+                {'name': 'Machine Learning', 'category': 'Data Science', 'desc': 'Machine Learning concepts'},
+                {'name': 'TensorFlow', 'category': 'Data Science', 'desc': 'TensorFlow ML framework'},
+                {'name': 'PyTorch', 'category': 'Data Science', 'desc': 'PyTorch ML framework'},
+                {'name': 'Scikit-Learn', 'category': 'Data Science', 'desc': 'Scikit-Learn ML library'},
+                {'name': 'Pandas', 'category': 'Data Science', 'desc': 'Pandas data analysis'},
+                {'name': 'NumPy', 'category': 'Data Science', 'desc': 'NumPy numerical computing'},
+                {'name': 'Matplotlib', 'category': 'Data Science', 'desc': 'Matplotlib visualization'},
+                {'name': 'Data Analysis', 'category': 'Data Science', 'desc': 'Data Analysis skills'},
+                {'name': 'Data Visualization', 'category': 'Data Science', 'desc': 'Data Visualization'},
+                {'name': 'SQL', 'category': 'Data Science', 'desc': 'SQL query language'},
+                {'name': 'R', 'category': 'Data Science', 'desc': 'R programming language'},
+                
+                # Soft Skills
+                {'name': 'Communication', 'category': 'Soft Skills', 'desc': 'Excellent communication'},
+                {'name': 'Leadership', 'category': 'Soft Skills', 'desc': 'Leadership and management'},
+                {'name': 'Problem Solving', 'category': 'Soft Skills', 'desc': 'Problem solving ability'},
+                {'name': 'Project Management', 'category': 'Soft Skills', 'desc': 'Project management'},
+                {'name': 'Team Collaboration', 'category': 'Soft Skills', 'desc': 'Team collaboration'},
+                {'name': 'Critical Thinking', 'category': 'Soft Skills', 'desc': 'Critical thinking'},
+                {'name': 'Attention to Detail', 'category': 'Soft Skills', 'desc': 'Attention to detail'},
+                {'name': 'Time Management', 'category': 'Soft Skills', 'desc': 'Time management'},
+                {'name': 'Adaptability', 'category': 'Soft Skills', 'desc': 'Adaptability and flexibility'},
+                {'name': 'Creativity', 'category': 'Soft Skills', 'desc': 'Creativity and innovation'},
+                
+                # Other Technologies
+                {'name': 'GraphQL', 'category': 'Backend', 'desc': 'GraphQL API query language'},
+                {'name': 'REST API', 'category': 'Backend', 'desc': 'REST API design'},
+                {'name': 'gRPC', 'category': 'Backend', 'desc': 'gRPC framework'},
+                {'name': 'Microservices', 'category': 'Backend', 'desc': 'Microservices architecture'},
+                {'name': 'OAuth', 'category': 'Backend', 'desc': 'OAuth authentication'},
+                {'name': 'JWT', 'category': 'Backend', 'desc': 'JSON Web Token'},
+                {'name': 'Message Queue', 'category': 'Backend', 'desc': 'Message Queue systems'},
+                {'name': 'RabbitMQ', 'category': 'Backend', 'desc': 'RabbitMQ message broker'},
+                {'name': 'Apache Kafka', 'category': 'Backend', 'desc': 'Apache Kafka streaming'},
+            ]
+            
+            added_count = 0
+            skipped_count = 0
+            
+            for skill_data in default_skills:
+                existing = Skill.query.filter_by(skill_name=skill_data['name']).first()
+                if not existing:
+                    new_skill = Skill(
+                        skill_name=skill_data['name'],
+                        category=skill_data['category'],
+                        description=skill_data['desc']
+                    )
+                    db.session.add(new_skill)
+                    added_count += 1
+                else:
+                    skipped_count += 1
+            
+            try:
+                db.session.commit()
+                flash(f'Successfully added {added_count} skills! ({skipped_count} already existed)', 'success')
+                log_activity('skills', 'BULK_INSERT', None,
+                           new_values={'count': added_count},
+                           user_id=session['user_id'])
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Error adding skills: {str(e)}', 'error')
+        
         elif action == 'bulk_import':
             # Handle CSV upload for bulk skill import
             if 'csv_file' in request.files:
