@@ -3,238 +3,270 @@
 {% block title %}Company Profile - {{ company.company_name }}{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="mb-8">
-            <nav class="flex mb-4" aria-label="Breadcrumb">
-                <ol class="flex items-center space-x-2">
-                    <li>
-                        <a href="{{ url_for('employer.employer_dashboard') }}" class="text-gray-500 hover:text-gray-700">
-                            <i class="fas fa-home"></i>
-                        </a>
-                    </li>
-                    <li class="flex items-center">
-                        <i class="fas fa-chevron-right text-gray-400 mx-2 text-xs"></i>
-                        <span class="text-gray-700 font-medium">Company Profile</span>
-                    </li>
-                </ol>
-            </nav>
-            <h1 class="text-3xl font-bold text-gray-900">Company Profile</h1>
-            <p class="mt-2 text-gray-600">Manage your company information. A complete profile helps attract better candidates.</p>
-        </div>
+<style>
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in { animation: fadeInUp 0.5s ease-out forwards; }
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+</style>
 
-        <!-- Profile Completion Card -->
-        {% set completion = 0 %}
-        {% if company.company_name %}{% set completion = completion + 20 %}{% endif %}
-        {% if company.industry %}{% set completion = completion + 15 %}{% endif %}
-        {% if company.company_size %}{% set completion = completion + 15 %}{% endif %}
-        {% if company.location %}{% set completion = completion + 15 %}{% endif %}
-        {% if company.description %}{% set completion = completion + 20 %}{% endif %}
-        {% if company.website %}{% set completion = completion + 15 %}{% endif %}
+<div class="max-w-5xl mx-auto pb-12">
+     
+    <div class="relative bg-gradient-to-r from-slate-900 to-teal-900 rounded-3xl p-8 shadow-xl overflow-hidden animate-fade-in text-white mb-8">
+        <div class="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-emerald-500 opacity-10 rounded-full blur-2xl"></div>
         
-        {% if completion < 100 %}
-        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg p-6 mb-8 text-white">
-            <div class="flex items-center justify-between">
+        <div class="relative z-10">
+            <nav class="flex items-center space-x-2 text-sm text-teal-200 mb-2">
+                <a href="{{ url_for('employer.employer_dashboard') }}" class="hover:text-white transition-colors">Dashboard</a>
+                <svg class="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                <span class="text-white font-medium">Company Profile</span>
+            </nav>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
-                    <h3 class="text-lg font-semibold">Profile Completion: {{ completion }}%</h3>
-                    <p class="text-indigo-100 text-sm mt-1">Complete your profile to attract more qualified candidates</p>
+                    <h1 class="text-3xl font-bold text-white">Company Identity</h1>
+                    <p class="text-slate-300 mt-2 max-w-2xl">Manage your branding and company details. A complete profile attracts 3x more qualified candidates.</p>
                 </div>
-                <div class="w-24 h-24">
-                    <svg class="transform -rotate-90 w-24 h-24">
-                        <circle cx="48" cy="48" r="40" stroke="rgba(255,255,255,0.3)" stroke-width="8" fill="none"/>
-                        <circle cx="48" cy="48" r="40" stroke="white" stroke-width="8" fill="none"
-                                stroke-dasharray="{{ completion * 2.51 }} 251" stroke-linecap="round"/>
-                    </svg>
-                    <span class="absolute transform -translate-x-12 -translate-y-16 text-2xl font-bold">{{ completion }}%</span>
-                </div>
+                
+                <button type="submit" form="companyForm" class="hidden md:flex items-center px-6 py-3 bg-white text-teal-900 font-bold rounded-xl hover:bg-teal-50 shadow-lg transition-all transform hover:-translate-y-0.5">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                    Save Changes
+                </button>
             </div>
         </div>
-        {% endif %}
+    </div>
 
-        <!-- Company Profile Form -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-            <form method="POST" enctype="multipart/form-data" class="divide-y divide-gray-200">
-                <!-- Company Logo Section -->
-                <div class="p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fas fa-image text-indigo-500 mr-2"></i>Company Logo
-                    </h2>
-                    <div class="flex items-center space-x-6">
-                        <div class="w-24 h-24 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300" id="logo-preview">
-                            {% if company.logo %}
-                            <img src="{{ url_for('employer.company_logo') }}" alt="Company Logo" class="w-full h-full object-cover">
-                            {% else %}
-                            <i class="fas fa-building text-4xl text-gray-400"></i>
-                            {% endif %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="lg:col-span-2 space-y-8 animate-fade-in delay-100">
+            
+            <form id="companyForm" method="POST" enctype="multipart/form-data" class="space-y-8" 
+                  x-data="{ 
+                      logoPreview: '{{ url_for('employer.company_logo') if company.logo else '' }}',
+                      handleFile(event) {
+                          const file = event.target.files[0];
+                          if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (e) => this.logoPreview = e.target.result;
+                              reader.readAsDataURL(file);
+                          }
+                      }
+                  }">
+                
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+                    <div class="flex items-center space-x-3 mb-6 border-b border-gray-100 pb-4">
+                        <div class="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         </div>
-                        <div class="flex-1">
-                            <label class="block">
-                                <span class="sr-only">Choose company logo</span>
-                                <input type="file" name="logo" accept="image/*" 
-                                       class="block w-full text-sm text-gray-500
-                                              file:mr-4 file:py-2 file:px-4
-                                              file:rounded-lg file:border-0
-                                              file:text-sm file:font-semibold
-                                              file:bg-indigo-50 file:text-indigo-700
-                                              hover:file:bg-indigo-100
-                                              cursor-pointer"
-                                       onchange="previewLogo(this)">
-                            </label>
-                            <p class="mt-2 text-xs text-gray-500">PNG, JPG, GIF up to 5MB. Recommended size: 200x200px</p>
+                        <h2 class="text-xl font-bold text-gray-900">Brand Identity</h2>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-8">
+                        <div class="flex-shrink-0">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Company Logo</label>
+                            <div class="relative w-32 h-32 group cursor-pointer">
+                                <div class="w-full h-full rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 group-hover:border-teal-500 transition-colors bg-gray-50 flex items-center justify-center">
+                                    <template x-if="logoPreview">
+                                        <img :src="logoPreview" class="w-full h-full object-cover">
+                                    </template>
+                                    <template x-if="!logoPreview">
+                                        <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                    </template>
+                                    
+                                    <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
+                                        <span class="text-white text-xs font-bold">Change</span>
+                                    </div>
+                                </div>
+                                <input type="file" name="logo" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" @change="handleFile">
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2 text-center">Max 5MB (PNG/JPG)</p>
+                        </div>
+
+                        <div class="flex-1 space-y-5">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Company Name <span class="text-red-500">*</span></label>
+                                <input type="text" name="company_name" value="{{ company.company_name or '' }}" required
+                                       class="form-input w-full focus:border-teal-500 focus:ring-teal-500 text-lg font-medium"
+                                       placeholder="e.g. Acme Innovations">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Website</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                                    </div>
+                                    <input type="url" name="website" value="{{ company.website or '' }}"
+                                           class="form-input w-full pl-10 focus:border-teal-500 focus:ring-teal-500"
+                                           placeholder="https://company.com">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Basic Information -->
-                <div class="p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fas fa-info-circle text-indigo-500 mr-2"></i>Basic Information
-                    </h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Company Name <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" name="company_name" value="{{ company.company_name or '' }}" required
-                                   class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                                   placeholder="Enter company name">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+                    <div class="flex items-center space-x-3 mb-6 border-b border-gray-100 pb-4">
+                        <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                         </div>
+                        <h2 class="text-xl font-bold text-gray-900">Company Overview</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Industry</label>
-                            <select name="industry" 
-                                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                                <option value="">Select Industry</option>
-                                {% for industry in industries %}
-                                <option value="{{ industry }}" {% if company.industry == industry %}selected{% endif %}>{{ industry }}</option>
-                                {% endfor %}
-                            </select>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Industry</label>
+                            <div class="relative">
+                                <select name="industry" class="form-input w-full appearance-none focus:border-teal-500 focus:ring-teal-500">
+                                    <option value="">Select Industry</option>
+                                    {% for industry in industries %}
+                                    <option value="{{ industry }}" {% if company.industry == industry %}selected{% endif %}>{{ industry }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </div>
                         </div>
+                        
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Company Size</label>
-                            <select name="company_size" 
-                                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                                <option value="">Select Company Size</option>
-                                <option value="1-10" {% if company.company_size == '1-10' %}selected{% endif %}>1-10 employees</option>
-                                <option value="11-50" {% if company.company_size == '11-50' %}selected{% endif %}>11-50 employees</option>
-                                <option value="51-200" {% if company.company_size == '51-200' %}selected{% endif %}>51-200 employees</option>
-                                <option value="201-500" {% if company.company_size == '201-500' %}selected{% endif %}>201-500 employees</option>
-                                <option value="500+" {% if company.company_size == '500+' %}selected{% endif %}>500+ employees</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                            <input type="text" name="location" value="{{ company.location or '' }}"
-                                   class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                                   placeholder="e.g., San Francisco, CA or Remote">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Company Size</label>
+                            <div class="relative">
+                                <select name="company_size" class="form-input w-full appearance-none focus:border-teal-500 focus:ring-teal-500">
+                                    <option value="">Select Size</option>
+                                    <option value="1-10" {% if company.company_size == '1-10' %}selected{% endif %}>1-10 employees</option>
+                                    <option value="11-50" {% if company.company_size == '11-50' %}selected{% endif %}>11-50 employees</option>
+                                    <option value="51-200" {% if company.company_size == '51-200' %}selected{% endif %}>51-200 employees</option>
+                                    <option value="201-500" {% if company.company_size == '201-500' %}selected{% endif %}>201-500 employees</option>
+                                    <option value="500+" {% if company.company_size == '500+' %}selected{% endif %}>500+ employees</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Online Presence -->
-                <div class="p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fas fa-globe text-indigo-500 mr-2"></i>Online Presence
-                    </h2>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Website</label>
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Headquarters Location</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-link text-gray-400"></i>
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                             </div>
-                            <input type="url" name="website" value="{{ company.website or '' }}"
-                                   class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                                   placeholder="https://www.yourcompany.com">
+                            <input type="text" name="location" value="{{ company.location or '' }}"
+                                   class="form-input w-full pl-10 focus:border-teal-500 focus:ring-teal-500"
+                                   placeholder="e.g. San Francisco, CA">
                         </div>
                     </div>
-                </div>
 
-                <!-- Company Description -->
-                <div class="p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fas fa-align-left text-indigo-500 mr-2"></i>About Your Company
-                    </h2>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Company Description</label>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">About Company</label>
                         <textarea name="description" rows="6"
-                                  class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition resize-none"
-                                  placeholder="Tell candidates about your company culture, mission, values, and what makes your company a great place to work...">{{ company.description or '' }}</textarea>
-                        <p class="mt-2 text-xs text-gray-500">Tip: Include information about your company culture, perks, and growth opportunities</p>
+                                  class="form-input w-full focus:border-teal-500 focus:ring-teal-500 leading-relaxed"
+                                  placeholder="Describe your culture, mission, and why people should work here...">{{ company.description or '' }}</textarea>
                     </div>
                 </div>
 
-                <!-- Submit Button -->
-                <div class="px-6 py-4 bg-gray-50 flex items-center justify-between">
-                    <a href="{{ url_for('employer.employer_dashboard') }}" 
-                       class="text-gray-600 hover:text-gray-800 font-medium">
-                        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
-                    </a>
-                    <button type="submit" 
-                            class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:from-indigo-700 hover:to-purple-700 transform hover:-translate-y-0.5 transition-all duration-200">
-                        <i class="fas fa-save mr-2"></i>Save Changes
+                <div class="md:hidden">
+                    <button type="submit" class="w-full py-4 bg-teal-600 text-white font-bold rounded-xl shadow-lg shadow-teal-500/30 hover:bg-teal-700 transition-colors flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                        Save Changes
                     </button>
                 </div>
             </form>
         </div>
 
-        <!-- Preview Card -->
-        <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">
-                <i class="fas fa-eye text-indigo-500 mr-2"></i>How Candidates See Your Company
-            </h2>
-            <div class="border border-gray-200 rounded-lg p-6">
-                <div class="flex items-start space-x-4">
-                    <div class="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                        {% if company.logo %}
-                        <img src="{{ url_for('employer.company_logo') }}" alt="Company Logo" class="w-full h-full object-cover">
-                        {% else %}
-                        <i class="fas fa-building text-2xl text-gray-400"></i>
-                        {% endif %}
-                    </div>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold text-gray-900">{{ company.company_name }}</h3>
-                        <div class="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-500">
-                            {% if company.industry %}
-                            <span><i class="fas fa-industry mr-1"></i>{{ company.industry }}</span>
-                            {% endif %}
-                            {% if company.company_size %}
-                            <span><i class="fas fa-users mr-1"></i>{{ company.company_size }} employees</span>
-                            {% endif %}
-                            {% if company.location %}
-                            <span><i class="fas fa-map-marker-alt mr-1"></i>{{ company.location }}</span>
+        <div class="space-y-8 animate-fade-in delay-200">
+            
+            {% set completion = 0 %}
+            {% if company.company_name %}{% set completion = completion + 20 %}{% endif %}
+            {% if company.industry %}{% set completion = completion + 15 %}{% endif %}
+            {% if company.company_size %}{% set completion = completion + 15 %}{% endif %}
+            {% if company.location %}{% set completion = completion + 15 %}{% endif %}
+            {% if company.description %}{% set completion = completion + 20 %}{% endif %}
+            {% if company.website %}{% set completion = completion + 15 %}{% endif %}
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-teal-50 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
+                
+                <h3 class="text-lg font-bold text-gray-900 mb-2 relative z-10">Profile Strength</h3>
+                
+                <div class="flex items-end gap-2 mb-4 relative z-10">
+                    <span class="text-4xl font-extrabold text-teal-600">{{ completion }}%</span>
+                    <span class="text-sm text-gray-500 font-medium mb-1.5">Completed</span>
+                </div>
+
+                <div class="w-full bg-gray-100 rounded-full h-3 mb-4 overflow-hidden relative z-10">
+                    <div class="bg-gradient-to-r from-teal-500 to-emerald-500 h-3 rounded-full transition-all duration-1000" style="width: {{ completion }}%"></div>
+                </div>
+
+                <p class="text-sm text-gray-500 relative z-10">
+                    {% if completion < 100 %}
+                    Add more details to boost visibility by up to 40%.
+                    {% else %}
+                    Great job! Your profile is fully optimized.
+                    {% endif %}
+                </p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-gray-900">Candidate View</h3>
+                    <span class="text-xs font-semibold text-teal-600 bg-teal-50 px-2 py-1 rounded">Preview</span>
+                </div>
+                
+                <div class="p-6">
+                    <div class="flex items-start gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
+                            {% if company.logo %}
+                            <img src="{{ url_for('employer.company_logo') }}" class="w-full h-full object-cover">
+                            {% else %}
+                            <span class="text-gray-400 font-bold text-xl">{{ company.company_name[0] if company.company_name else '?' }}</span>
                             {% endif %}
                         </div>
-                        {% if company.website %}
-                        <a href="{{ company.website }}" target="_blank" class="text-indigo-600 hover:text-indigo-800 text-sm mt-2 inline-block">
-                            <i class="fas fa-external-link-alt mr-1"></i>{{ company.website }}
-                        </a>
-                        {% endif %}
+                        <div>
+                            <h4 class="font-bold text-gray-900 text-sm">{{ company.company_name or 'Company Name' }}</h4>
+                            <div class="flex flex-wrap gap-2 mt-1">
+                                {% if company.industry %}
+                                <span class="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{{ company.industry }}</span>
+                                {% endif %}
+                                {% if company.location %}
+                                <span class="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{{ company.location }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
+                    
+                    <div class="space-y-2">
+                        <div class="h-2 bg-gray-100 rounded w-full"></div>
+                        <div class="h-2 bg-gray-100 rounded w-5/6"></div>
+                        <div class="h-2 bg-gray-100 rounded w-4/6"></div>
+                    </div>
+                    
+                    {% if company.description %}
+                    <p class="mt-4 text-xs text-gray-500 line-clamp-3 leading-relaxed">
+                        {{ company.description }}
+                    </p>
+                    {% endif %}
+                    
+                    {% if company.website %}
+                    <a href="{{ company.website }}" target="_blank" class="mt-4 inline-flex items-center text-xs font-bold text-teal-600 hover:text-teal-700">
+                        Visit Website
+                        <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                    </a>
+                    {% endif %}
                 </div>
-                {% if company.description %}
-                <div class="mt-4 pt-4 border-t border-gray-200">
-                    <p class="text-gray-600 text-sm leading-relaxed">{{ company.description[:300] }}{% if company.description|length > 300 %}...{% endif %}</p>
-                </div>
-                {% else %}
-                <div class="mt-4 pt-4 border-t border-gray-200">
-                    <p class="text-gray-400 text-sm italic">No description added yet. Add a description to help candidates learn about your company.</p>
-                </div>
-                {% endif %}
             </div>
+
         </div>
     </div>
 </div>
 
 <script>
-function previewLogo(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const preview = document.getElementById('logo-preview');
-            preview.innerHTML = `<img src="${e.target.result}" alt="Logo Preview" class="w-full h-full object-cover">`;
-        }
-        reader.readAsDataURL(input.files[0]);
-    }
-}
+    // Alpine.js is already loaded in base.html, so x-data will work
 </script>
 {% endblock %}
