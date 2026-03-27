@@ -3,6 +3,7 @@
 {% block title %}Interviewer Dashboard - HireMe{% endblock %}
 
 {% block content %}
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <div class="space-y-6">
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -75,9 +76,13 @@
         <!-- Main Content -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Upcoming Interviews -->
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm">
-                <div class="px-6 py-4 border-b border-gray-100">
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm" x-data="{ showCalendar: false }">
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                     <h2 class="text-lg font-semibold text-gray-900">Upcoming Interviews</h2>
+                    <button @click="showCalendar = true" class="px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-bold rounded-lg hover:opacity-90 transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        Calendar
+                    </button>
                 </div>
                 {% if upcoming_interviews %}
                 <div class="divide-y divide-gray-100">
@@ -123,10 +128,10 @@
                                         View Profile
                                     </a>
                                     {% if room.status in ['scheduled', 'active'] %}
-                                    <a href="{{ url_for('interview.join_interview', room_code=room.room_code) }}" hx-boost="false"
-                                        class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-lg hover:opacity-90 transition text-sm">
+                                    <button type="button" @click="confirmJoinRoom('{{ url_for('interview.join_interview', room_code=room.room_code) }}')"
+                                        class="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition text-sm cursor-pointer">
                                         Join Interview
-                                    </a>
+                                    </button>
                                     {% endif %}
                                 </div>
                             </div>
@@ -267,17 +272,61 @@
                     </li>
                 </ul>
             </div>
+
+            <!-- Calendar Modal -->
+            <div id="calendarModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" x-data="{ showCalendar: false }" :class="showCalendar ? 'flex' : 'hidden'" @click.self="showCalendar = false">
+                <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto border border-gray-200 shadow-lg">
+                    <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white rounded-t-2xl">
+                        <h3 class="text-xl font-bold text-gray-900">Interview Calendar</h3>
+                        <button @click="showCalendar = false" class="text-gray-400 hover:text-gray-600 text-2xl font-light">&times;</button>
+                    </div>
+                    <div class="p-6">
+                        <div id="calendarEventsList" class="space-y-3">
+                            {% for room, application, job, company in upcoming_interviews %}
+                            {% if room.scheduled_time %}
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-indigo-300 transition-all">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <h4 class="font-bold text-gray-900">{{ job.title }} Interview</h4>
+                                        <p class="text-sm text-gray-600 mt-1">Candidate: 
+                                            {% if application.candidate and application.candidate.user %}
+                                            {{ application.candidate.user.first_name }} {{ application.candidate.user.last_name }}
+                                            {% else %}
+                                            Candidate
+                                            {% endif %}
+                                        </p>
+                                        <p class="text-sm text-gray-500 mt-2">{{ room.scheduled_time.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                                        {% if room.room_code %}
+                                        <p class="text-xs text-gray-400 mt-1">Room: {{ room.room_code }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <button @click="downloadCalendarEvent('{{ room.scheduled_time.isoformat() }}', '{{ job.title }} Interview - {{ application.candidate.user.first_name if application.candidate and application.candidate.user else 'Candidate' }}', '{{ room.room_code }}')" class="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-colors whitespace-nowrap ml-4">
+                                        Add to Calendar
+                                    </button>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                            {% if not upcoming_interviews or upcoming_interviews|length == 0 %}
+                            <div class="p-8 text-center text-gray-500">
+                                <p>No upcoming interviews to display</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Candidate Info Modal -->
-<div id="candidateModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+<div id="candidateModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center" x-data="{ showModal: false }" :class="showModal ? 'flex' : 'hidden'" @click.self="showModal = false">
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
         <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
             <div class="flex items-center justify-between">
                 <h3 class="text-lg font-semibold text-white">Candidate Profile</h3>
-                <button onclick="closeCandidateModal()" class="text-white hover:text-gray-200">
+                <button @click="showModal = false" class="text-white hover:text-gray-200">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -306,7 +355,7 @@
             </div>
         </div>
         <div class="bg-gray-50 px-6 py-4">
-            <button onclick="closeCandidateModal()" class="w-full py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">
+            <button @click="showModal = false" class="w-full py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">
                 Close
             </button>
         </div>
@@ -314,29 +363,56 @@
 </div>
 
 <script>
-function showCandidateInfo(firstName, lastName, email, position, company) {
-    document.getElementById('modalInitial').textContent = firstName ? firstName[0].toUpperCase() : 'C';
-    document.getElementById('modalName').textContent = firstName + ' ' + lastName;
-    document.getElementById('modalEmail').textContent = email;
-    document.getElementById('modalPosition').textContent = position;
-    document.getElementById('modalCompany').textContent = company;
-    
-    const modal = document.getElementById('candidateModal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
-function closeCandidateModal() {
-    const modal = document.getElementById('candidateModal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-}
-
-// Close modal when clicking outside
-document.getElementById('candidateModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeCandidateModal();
+// Alpine.js data for candidate modal
+let candidateModal = {
+    show(firstName, lastName, email, position, company) {
+        document.getElementById('modalInitial').textContent = firstName ? firstName[0].toUpperCase() : 'C';
+        document.getElementById('modalName').textContent = firstName + ' ' + lastName;
+        document.getElementById('modalEmail').textContent = email;
+        document.getElementById('modalPosition').textContent = position;
+        document.getElementById('modalCompany').textContent = company;
+        
+        const modal = document.getElementById('candidateModal');
+        const alpine = modal.__x?.getUnobservedData?.();
+        if (alpine) alpine.showModal = true;
     }
-});
+};
+
+// Global reference for old showCandidateInfo function
+function showCandidateInfo(firstName, lastName, email, position, company) {
+    candidateModal.show(firstName, lastName, email, position, company);
+}
+
+// Confirm before joining interview room
+function confirmJoinRoom(roomUrl) {
+    if (confirm('Are you sure you want to join the interview room? Make sure you are ready and in a quiet environment.')) {
+        window.location.href = roomUrl;
+    }
+}
+
+// Calendar event download functionality
+function downloadCalendarEvent(isoDateTime, title, roomCode) {
+    fetch('{{ url_for("interview.download_calendar") }}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            title: title,
+            scheduled_time: isoDateTime,
+            room_code: roomCode
+        })
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `interview-${new Date(isoDateTime).getTime()}.ics`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    })
+    .catch(error => console.error('Error downloading calendar event:', error));
+}
 </script>
 {% endblock %}
