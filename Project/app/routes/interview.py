@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, make_response
 from extensions import db
 from models import (
     User, ActivityLog, Notification, InterviewRoom, InterviewParticipant, 
@@ -301,6 +301,79 @@ def api_execute_code():
         })
     except Exception as e:
         return jsonify({'error': f'Execution failed: {str(e)}'}), 500
+
+@bp.route('/download-calendar', methods=['POST'])
+def download_calendar():
+    """Download interview as .ics calendar file"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    try:
+        data = request.get_json()
+        title = data.get('title', 'Interview')
+        scheduled_time = data.get('scheduled_time')
+        room_code = data.get('room_code', '')
+        
+        if not scheduled_time:
+            return jsonify({'error': 'No scheduled time provided'}), 400
+        
+        # Parse ISO format datetime
+        from datetime import datetime as dt
+        event_datetime = dt.fromisoformat(scheduled_time.replace('Z', '+00:00'))
+        
+        # Create .ics file content
+        ics_content = f"""BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//HireMe//Interview Calendar//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:{room_code}@hireme.com
+DTSTAMP:{dt.utcnow().strftime('%Y%m%dT%H%M%SZ')}
+DTSTART:{event_datetime.strftime('%Y%m%dT%H%M%S')}
+DTEND:{(event_datetime.replace(hour=event_datetime.hour+1) if event_datetime.hour < 23 else event_datetime.replace(day=event_datetime.day+1, hour=0)).strftime('%Y%m%dT%H%M%S')}
+SUMMARY:{title}
+DESCRIPTION:Interview session - Room Code: {room_code}
+LOCATION:HireMe Interview Platform
+END:VEVENT
+END:VCALENDAR"""
+        
+        from flask import make_response
+        response = make_response(ics_content)
+        response.headers['Content-Disposition'] = 'attachment; filename="interview.ics"'
+        response.headers['Content-Type'] = 'text/calendar'
+        return response
+        
+    except Exception as e:
+        return jsonify({'error': f'Failed to generate calendar file: {str(e)}'}), 500
+
+@bp.route('/add-to-calendar', methods=['POST'])
+def add_to_calendar():
+    """Add event to calendar (placeholder for future calendar integrations)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    try:
+        data = request.get_json()
+        title = data.get('title', 'Interview')
+        scheduled_time = data.get('scheduled_time')
+        
+        if not scheduled_time:
+            return jsonify({'error': 'No scheduled time provided'}), 400
+        
+        # For now, just return success
+        # Future: integrate with Google Calendar, Outlook, etc.
+        return jsonify({
+            'success': True,
+            'message': 'Event ready to add to calendar',
+            'event': {
+                'title': title,
+                'time': scheduled_time
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Failed to add event: {str(e)}'}), 500
 
 # --- ADMIN/MANAGER INTERVIEW MANAGEMENT ROUTES ---
 
